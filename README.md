@@ -72,9 +72,14 @@ Set `GEMINI_API_KEY` (and optionally `GEMINI_MODEL`, default `gemini-2.5-flash`)
 availability, network, quota or authentication failures, never to hide invalid output.
 
 ### OCR (optional)
-Scanned PDF pages are detected automatically. Reading them needs the Tesseract binary, which is **not bundled**.
-Install it (e.g. the UB Mannheim Windows build) and set `TESSERACT_CMD=C:\path\to\tesseract.exe`, or place it at
-`tools\tesseract\tesseract.exe`. Without it, scanned pages are reported and skipped, never guessed.
+Scanned PDF pages are detected automatically. To read them, unpack a portable Tesseract into the project (no installer is run,
+nothing is written outside the folder):
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\setup_tesseract.ps1
+```
+It downloads 7-Zip 26.06 and Tesseract 5.4.0 (UB Mannheim build, English data included) from their official GitHub releases and
+unpacks them into `toolszip` and `tools	esseract`; the app finds `tools	esseract	esseract.exe` automatically. Verify with
+`.venv\Scripts\python -m pytest -m live -k ocr`. Without Tesseract, scanned pages are reported and skipped, never guessed.
 
 ## 4. Environment variables
 

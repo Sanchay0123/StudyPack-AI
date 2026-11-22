@@ -191,3 +191,31 @@ def test_pdf_table_with_ruling_lines_is_extracted(tmp_path):
     res = extract_pdf(str(path))
     tables = [b.text for b in res.blocks if b.content_type == "table"]
     assert tables and "| Transport | TCP |" in tables[0]
+
+
+@pytest.mark.live
+def test_live_ocr_reads_scanned_page(tmp_path):
+    """Requires Tesseract (scripts/setup_tesseract.ps1). Run with: pytest -m live"""
+    from ingestion.ocr_processor import ocr_available
+    if not ocr_available():
+        pytest.skip("Tesseract not installed")
+    import pymupdf as fitz
+    from PIL import Image, ImageDraw, ImageFont
+
+    img = Image.new("RGB", (1700, 1000), "white")
+    draw = ImageDraw.Draw(img)
+    font = ImageFont.load_default(size=44)
+    for i, line in enumerate(["Photosynthesis converts light energy", "into chemical energy stored in glucose.",
+                              "Chlorophyll absorbs mainly red and blue light."]):
+        draw.text((80, 120 + i * 90), line, fill="black", font=font)
+    png = tmp_path / "scan.png"
+    img.save(png)
+    doc = fitz.open()
+    page = doc.new_page()
+    page.insert_image(page.rect, filename=str(png))
+    doc.save(str(tmp_path / "scan.pdf"))
+
+    res = extract_pdf(str(tmp_path / "scan.pdf"), use_ocr=True)
+    text = " ".join(b.text for b in res.blocks).lower()
+    assert res.ocr_applied and "photosynthesis" in text and "chlorophyll" in text
+    assert res.metadata["ocr_mean_confidence"] > 0.6
