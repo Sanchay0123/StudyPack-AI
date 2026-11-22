@@ -72,6 +72,7 @@ class Settings:
     gemini_api_key: str = field(default="", repr=False)
     gemini_model: str = "gemini-2.5-flash"
     gemini_timeout_s: int = 120
+    provider_cooldown_s: int = 300
 
     # Generation
     max_concurrent_requests: int = 1
@@ -138,6 +139,7 @@ def load_settings(env_file: Path | None = None) -> Settings:
         gemini_api_key=_env_str("GEMINI_API_KEY", ""),
         gemini_model=_env_str("GEMINI_MODEL", "gemini-2.5-flash"),
         gemini_timeout_s=_env_int("GEMINI_TIMEOUT_S", 120),
+        provider_cooldown_s=_env_int("PROVIDER_COOLDOWN_S", 300),
         max_concurrent_requests=max(1, _env_int("MAX_CONCURRENT_REQUESTS", 1)),
         context_length=_env_int("DEFAULT_CONTEXT_LENGTH", 8192),
         max_output_tokens=_env_int("MAX_OUTPUT_TOKENS", 3072),

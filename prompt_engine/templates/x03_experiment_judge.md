@@ -1,7 +1,7 @@
 ---
 id: X03
 name: experiment_judge
-version: 1.0.0
+version: 1.1.0
 schema: ExperimentJudgement
 techniques: role, structured-output, independent-evaluation (rubric)
 temperature: 0.0
@@ -29,12 +29,22 @@ NOTES TO GRADE:
 {{notes_text}}
 </notes>
 
-RUBRIC (1 = very poor, 3 = adequate, 5 = excellent):
-- completeness: are concepts explained sufficiently to learn from, not just named?
-- source_fidelity: does the content preserve the source's meaning without distortion?
-- readability: is it clear, well organised and easy to follow?
-- relevance: does it suit the subject and stay on the material?
-- For each required topic, state whether the notes cover it adequately.
-- unsupported_claims: list statements presented as fact that are not supported by the source and are not standard background knowledge.
+FIRST, for each required topic decide "adequately_covered": true ONLY if the notes EXPLAIN it so that a student who has not
+seen the source could learn it: a definition or statement of what it is, the reasoning or mechanism (why/how), and an example,
+application or worked case where the topic allows one. A topic that is only named, listed or summarised in one sentence is
+NOT adequately covered. Put every concept that is only named or listed without such an explanation in "merely_listed_concepts".
+
+RUBRIC - use these anchors strictly; most notes should NOT receive 5:
+- completeness: 5 = every required topic adequately covered with depth (definitions, reasoning, examples); 4 = all covered,
+  a few thin; 3 = roughly half adequately covered, rest listed or summarised; 2 = mostly a summary/outline with little
+  explanation; 1 = barely more than headings.
+- source_fidelity: 5 = no distortions or contradictions of the source; 4 = one minor imprecision; 3 = several imprecisions
+  or one clear error; 2 = several clear errors; 1 = largely unreliable. Standard, correct textbook background that goes beyond
+  the source is NOT a fidelity problem; only distortion, contradiction or invented specifics are.
+- readability: 5 = clear progression, well structured, easy to study from; 3 = understandable but disorganised or terse;
+  1 = hard to follow.
+- relevance: 5 = everything serves learning this material in this subject; 3 = noticeable padding or off-topic parts; 1 = mostly irrelevant.
+- unsupported_claims: statements presented as fact that contradict the source or invent specifics (numbers, dates, names,
+  results) that are neither in the source nor standard textbook knowledge.
 
 {{> output_format}}

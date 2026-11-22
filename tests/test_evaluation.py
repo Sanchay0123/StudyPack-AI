@@ -139,3 +139,29 @@ def test_refinement_fits_context_for_long_notes():
     fake = FakeLLM()
     updated, _, applied = refine_notes(StageRunner(ProviderRouter(fake), Settings()), ctx, notes, findings)
     assert applied and "content omitted" in fake.calls[0].prompt
+
+
+def test_apply_revisions_guards_fields_conflicts_and_untargeted_edits():
+    sec = lambda h, k="concept": {"heading": h, "kind": k, "content": h, "provenance": "source", "source_labels": []}  # noqa: E731
+    notes = {"summary": "old", "sections": [sec("Intro", "introduction"), sec("Causes"), sec("Effects"), sec("Legacy")]}
+    refinement = NotesRefinement.model_validate({"revisions": [
+        {"action": "replace", "target_heading": "Causes", "section": sec("Causes (fixed)")},
+        {"action": "remove", "target_heading": "Causes", "section": None},          # conflicting: ignored
+        {"action": "replace", "target_heading": "Summary", "section": sec("Summary", "summary")},
+        {"action": "replace", "target_heading": "Key terms", "section": sec("Key terms")},
+        {"action": "replace", "target_heading": "Legacy", "section": sec("Legacy (restyled)")},  # no findings: skipped
+    ], "change_log": ["x"]})
+    updated, applied = apply_revisions(notes, refinement, allowed={"Causes"})
+    assert [s["heading"] for s in updated["sections"]] == ["Intro", "Causes (fixed)", "Effects", "Legacy"]
+    assert updated["summary"] == "Summary"
+    assert "skipped (no findings for this section): Legacy" in applied
+
+
+def test_grounding_counts_headings_as_source_text():
+    """Regression: slide titles like 'Industrial Revolution (c. 1760-1840)' live in chunk.heading, not content."""
+    chunk = ContentChunk(chunk_id="c1", document_id="d", project_id="p", seq=1, content="Shift to machine manufacturing.",
+                         heading="Industrial Revolution in Britain (c. 1760-1840)", source_reference="slides, slide 1")
+    notes = {"_sources": {"S1": {"chunk_id": "c1", "ref": "slides"}}, "sections": [
+        {"heading": "Period", "provenance": "source", "source_labels": ["S1"],
+         "content": "The Industrial Revolution in Britain lasted from 1760 to 1840, a shift to machine manufacturing."}]}
+    assert check_grounding(notes, {"c1": chunk})["sections"][0]["flags"] == []

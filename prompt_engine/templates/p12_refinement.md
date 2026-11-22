@@ -1,7 +1,7 @@
 ---
 id: P12
 name: refinement
-version: 1.0.0
+version: 1.1.0
 schema: NotesRefinement
 techniques: role, contextual, structured-output, iterative-refinement
 temperature: 0.3
@@ -20,6 +20,7 @@ REVIEWER FINDINGS TO ADDRESS:
 {{findings}}
 
 CURRENT SECTION HEADINGS: {{section_headings}}
+SECTIONS WITH FINDINGS (only these may be replaced or removed): {{affected_sections}}
 
 CURRENT NOTES:
 <notes>
@@ -37,6 +38,7 @@ INSTRUCTIONS:
 2. Unsupported claims: correct them using the source, re-label them "supplementary"/"inferred" if they are valid background, or remove them if wrong.
 3. Missing or partial subtopics: add a properly explained section grounded in the source, citing labels.
 4. Keep the original style, terminology and level of detail. Never introduce new unsupported facts.
-5. change_log: one line per change.
+5. Do NOT replace sections that have no findings, even to improve style. "Key terms" and "Summary" are not sections: to fix the summary, use action "replace" with target_heading "Summary".
+6. change_log: one line per change.
 
 {{> output_format}}

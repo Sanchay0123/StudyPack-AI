@@ -1,0 +1,223 @@
+{
+  "project_id": "prj_351c790351f8",
+  "project": "E2E Kinematics",
+  "subject": "Mechanics",
+  "timestamp": "20261122-193924",
+  "model": "qwen3.5:4b-q4_K_M",
+  "provider": "ollama",
+  "generation_context": 8192,
+  "judge_context": 16384,
+  "coverage_units": [
+    "Definition of Kinematics",
+    "Displacement as a Vector Quantity",
+    "The Four SUVAT Equations",
+    "Worked Example: Car Acceleration",
+    "Characteristics of Free Fall",
+    "Gradient on Displacement-Time Graphs",
+    "Gradient and Area on Velocity-Time Graphs"
+  ],
+  "results": {
+    "A": {
+      "words": 547,
+      "sections": 8,
+      "words_per_unit": 78.1,
+      "lexical_topic_coverage_pct": 85.7,
+      "units_not_covered": [
+        "Characteristics of Free Fall"
+      ],
+      "unsupported_numbers": [],
+      "seconds": 31.3,
+      "source_chunks_used": 5,
+      "source_chunks_total": 5,
+      "calls": 1,
+      "judge": {
+        "topic_coverage": [
+          {
+            "topic": "Definition of Kinematics",
+            "adequately_covered": true,
+            "note": "Provides clear definition and context."
+          },
+          {
+            "topic": "Displacement as a Vector Quantity",
+            "adequately_covered": true,
+            "note": "Defines displacement, distinguishes from distance, and specifies vector nature."
+          },
+          {
+            "topic": "The Four SUVAT Equations",
+            "adequately_covered": true,
+            "note": "Lists all four equations with variable definitions and problem-solving strategy."
+          },
+          {
+            "topic": "Worked Example: Car Acceleration",
+            "adequately_covered": true,
+            "note": "Includes full scenario, given data, step-by-step calculation for both acceleration and distance."
+          },
+          {
+            "topic": "Characteristics of Free Fall",
+            "adequately_covered": true,
+            "note": "Defines conditions (gravity alone), gives value of g, and provides the specific time formula."
+          },
+          {
+            "topic": "Gradient on Displacement-Time Graphs",
+            "adequately_covered": true,
+            "note": "Explicitly states that gradient equals velocity."
+          },
+          {
+            "topic": "Gradient and Area on Velocity-Time Graphs",
+            "adequately_covered": true,
+            "note": "States gradient is acceleration and area is displacement; clarifies horizontal line meaning."
+          }
+        ],
+        "merely_listed_concepts": [],
+        "completeness": 5,
+        "completeness_reason": "All seven required topics are adequately covered. Each topic includes definitions, reasoning/mechanisms (e.g., why SUVAT applies), and worked examples or specific applications where available.",
+        "source_fidelity": 5,
+        "source_fidelity_reason": "The notes accurately reflect the source material without distortion or contradiction. The addition of standard textbook background (e.g., clarifying 'distance' as scalar) is permissible and does not constitute a fidelity error.",
+        "readability": 5,
+        "readability_reason": "The notes are exceptionally well-structured with clear headings, tables for quick reference, and logical progression from definitions to applications.",
+        "relevance": 5,
+        "relevance_reason": "Every section directly supports the learning objectives of kinematics as defined in the source material.",
+        "unsupported_claims": []
+      },
+      "judge_prompt": "X03@1.1.0+e511329",
+      "judge_topic_coverage_pct": 100.0,
+      "unsupported_numbers_note": "recomputed after including headings in the source text (deterministic, same outputs)"
+    },
+    "B": {
+      "words": 803,
+      "sections": 7,
+      "words_per_unit": 114.7,
+      "lexical_topic_coverage_pct": 100.0,
+      "units_not_covered": [],
+      "unsupported_numbers": [],
+      "seconds": 37.8,
+      "attempts": 1,
+      "calls": 1,
+      "source_chunks_used": 5,
+      "source_chunks_total": 5,
+      "judge": {
+        "topic_coverage": [
+          {
+            "topic": "Definition of Kinematics",
+            "adequately_covered": true,
+            "note": "Defines kinematics as describing motion without causes and lists key variables."
+          },
+          {
+            "topic": "Displacement as a Vector Quantity",
+            "adequately_covered": true,
+            "note": "Explicitly defines displacement as change in position, distinguishes it from distance (scalar), and states units."
+          },
+          {
+            "topic": "The Four SUVAT Equations",
+            "adequately_covered": true,
+            "note": "Lists all four equations with variable definitions and explains the method for selecting the correct equation."
+          },
+          {
+            "topic": "Worked Example: Car Acceleration",
+            "adequately_covered": true,
+            "note": "Provides a complete worked example calculating acceleration and distance from rest to 20 m/s in 5s."
+          },
+          {
+            "topic": "Characteristics of Free Fall",
+            "adequately_covered": true,
+            "note": "Defines free fall conditions (gravity alone, no air resistance), specifies g ≈ 9.81 m/s², and notes sign conventions."
+          },
+          {
+            "topic": "Gradient on Displacement-Time Graphs",
+            "adequately_covered": true,
+            "note": "States that the gradient represents velocity and explains its application to instantaneous velocity."
+          },
+          {
+            "topic": "Gradient and Area on Velocity-Time Graphs",
+            "adequately_covered": true,
+            "note": "Explains that gradient gives acceleration, area gives displacement, and interprets horizontal lines as zero acceleration."
+          }
+        ],
+        "merely_listed_concepts": [],
+        "completeness": 5,
+        "completeness_reason": "All seven required topics are adequately covered with definitions, reasoning, examples, or specific applications. No topic is merely listed.",
+        "source_fidelity": 5,
+        "source_fidelity_reason": "The notes accurately reflect the source material without distortion, contradiction, or invented specifics. Standard textbook background (e.g., defining instantaneous velocity via gradient) is consistent with the source's intent.",
+        "readability": 5,
+        "readability_reason": "The notes are well-structured with clear headings, logical progression from concepts to equations to examples, and a concise summary.",
+        "relevance": 5,
+        "relevance_reason": "All content directly supports the learning objectives of kinematics as defined in the source material.",
+        "unsupported_claims": []
+      },
+      "judge_prompt": "X03@1.1.0+e511329",
+      "judge_topic_coverage_pct": 100.0,
+      "unsupported_numbers_note": "recomputed after including headings in the source text (deterministic, same outputs)"
+    },
+    "C": {
+      "words": 4775,
+      "sections": 47,
+      "words_per_unit": 682.1,
+      "lexical_topic_coverage_pct": 100.0,
+      "units_not_covered": [],
+      "unsupported_numbers": [
+        "3600",
+        "9.8"
+      ],
+      "topics_with_notes": 5,
+      "topics": 5,
+      "calls": 31,
+      "seconds": 709.1,
+      "evaluated_topics": 5,
+      "consistency_issues": 13,
+      "source_labelled_unsupported_numbers": [],
+      "judge": {
+        "topic_coverage": [
+          {
+            "topic": "Definition of Kinematics",
+            "adequately_covered": true,
+            "note": "Defines kinematics as describing motion without causes and distinguishes it from dynamics."
+          },
+          {
+            "topic": "Displacement as a Vector Quantity",
+            "adequately_covered": true,
+            "note": "Defines displacement as change in position (vector), contrasts with distance (scalar), and explains directionality."
+          },
+          {
+            "topic": "The Four SUVAT Equations",
+            "adequately_covered": true,
+            "note": "Lists the four equations, defines variables, and provides a systematic problem-solving procedure."
+          },
+          {
+            "topic": "Worked Example: Car Acceleration",
+            "adequately_covered": true,
+            "note": "Presents a specific scenario (0 to 20 m/s in 5s), calculates acceleration and distance step-by-step."
+          },
+          {
+            "topic": "Characteristics of Free Fall",
+            "adequately_covered": true,
+            "note": "Defines free fall conditions (gravity alone, no air resistance), specifies g ≈ 9.81 m/s², and discusses sign conventions."
+          },
+          {
+            "topic": "Gradient on Displacement-Time Graphs",
+            "adequately_covered": true,
+            "note": "Explicitly states that the gradient gives velocity and explains the mathematical relationship."
+          },
+          {
+            "topic": "Gradient and Area on Velocity-Time Graphs",
+            "adequately_covered": true,
+            "note": "States gradient gives acceleration and area gives displacement, including conditions for constant velocity."
+          }
+        ],
+        "merely_listed_concepts": [],
+        "completeness": 5,
+        "completeness_reason": "All seven required topics are adequately covered with definitions, reasoning mechanisms, and worked examples or detailed explanations. No topic is merely listed.",
+        "source_fidelity": 4,
+        "source_fidelity_reason": "The notes contain one minor imprecision: the SUVAT equations section lists four equations but includes a redundant form ($s = \\frac{1}{2}(u+v)t$) which duplicates information already present in $s = ut + \\frac{1}{2}at^2$. This is not a contradiction, just a redundancy. The value of g is correctly cited as 9.81 m/s².",
+        "readability": 5,
+        "readability_reason": "The notes are exceptionally well-structured with clear headings, logical progression from definitions to applications, and consistent formatting that makes them easy to study.",
+        "relevance": 5,
+        "relevance_reason": "All content is directly relevant to the kinematics curriculum outlined in the source material, with no padding or off-topic sections.",
+        "unsupported_claims": []
+      },
+      "judge_prompt": "X03@1.1.0+e511329",
+      "judge_topic_coverage_pct": 100.0,
+      "unsupported_numbers_note": "recomputed after including headings in the source text (deterministic, same outputs)"
+    }
+  },
+  "raw_outputs_dir": "experiments\\runs\\20261122-193924_prj_351c790351f8"
+}

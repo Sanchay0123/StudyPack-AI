@@ -50,6 +50,7 @@ class TopicJudgement(BaseModel):
 class ExperimentJudgement(BaseModel):
     """X03 output: rubric scores for the prompt-engineering experiment."""
     topic_coverage: list[TopicJudgement]
+    merely_listed_concepts: list[str] = Field(description="Concepts that are only named or listed, not explained", max_length=30)
     completeness: int = Field(ge=1, le=5)
     completeness_reason: str
     source_fidelity: int = Field(ge=1, le=5)

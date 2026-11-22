@@ -80,6 +80,8 @@ changes. Every generated resource and every stage run stores the prompt id and v
 | partial global_rules | (fingerprint change) | Citations only via `source_labels`; no meta-references ("the source material", "S1") inside text. | Examples contained steps like "Identify the definition from the source material (S1)". |
 | P11 quality_evaluation | 1.0.0 → 1.1.0 | Evidence quotes must be copied exactly from the NOTES (8–20 words); every "needs_refinement" verdict must be justified by a listed finding. | Live E2E: the evaluator paraphrased evidence ("establishes, maintains…" vs notes "establishing, maintaining…"), and it often answered "needs_refinement" while listing no problems. |
 
+| P12 refinement | 1.0.0 → 1.1.0 | Lists the sections that have findings and forbids replacing others; "Summary" / "Key terms" are fields, not sections. Enforced in code too: edits to sections without findings are skipped (logged), "Summary"/"Overview" targets update those fields, and a replace+remove of the same section keeps the fix. | Live History pass: P12 rewrote 6 of 7 sections for a topic with few findings, "replaced" the Key terms block, added a duplicate Summary section, and once replaced then removed the same section. |
+
 Related non-prompt changes made for the same observations: evidence matching now tolerates word-form changes within one
 local window of the notes (stems), but still rejects quotes about absent content. Topic status is now determined by
 **concrete findings only** (missing or partial subtopics, medium or high unsupported claims, factual concerns). P12 receives a

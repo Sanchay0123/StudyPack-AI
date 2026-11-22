@@ -19,7 +19,9 @@ WEAK_SUPPORT = 0.34
 
 def check_grounding(notes: dict[str, Any], chunks_by_id: dict[str, ContentChunk]) -> dict[str, Any]:
     sources = notes.get("_sources", {})
-    label_text = {lab: chunks_by_id[v["chunk_id"]].content for lab, v in sources.items() if v.get("chunk_id") in chunks_by_id}
+    # Headings (slide titles, section titles) are source text too, but live outside chunk content.
+    label_text = {lab: f"{chunks_by_id[v['chunk_id']].heading or ''}\n{chunks_by_id[v['chunk_id']].content}"
+                  for lab, v in sources.items() if v.get("chunk_id") in chunks_by_id}
     all_source = "\n".join(label_text.values())
     sections_report = []
     chars = {"source": 0, "supplementary": 0, "inferred": 0}

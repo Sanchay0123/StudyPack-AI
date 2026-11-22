@@ -77,7 +77,7 @@ def run(project_id: str, judge_ctx: int) -> Path:
     stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     run_dir = RUNS_DIR / f"{stamp}_{project_id}"
     run_dir.mkdir(parents=True, exist_ok=True)
-    source_text = "\n".join(c.content for c in chunks)
+    source_text = "\n".join(f"{c.heading or ''}\n{c.content}" for c in chunks)  # headings are part of the source
     outputs: dict[str, str] = {}
     meta: dict[str, dict] = {}
 
@@ -109,10 +109,12 @@ def run(project_id: str, judge_ctx: int) -> Path:
 
     # ---- Approach C: multi-stage pipeline (existing notes) --------------------
     parts, consistency_issues, evaluated = [], 0, 0
+    source_labelled_text = []
     for p in parents:
         res = repo.get_resource(project_id, p.topic_id, "notes")
         if res:
             parts.append(structured_to_text(res.content))
+            source_labelled_text += [s["content"] for s in res.content.get("sections", []) if s.get("provenance") == "source"]
     for ev in repo.list_evaluations(project_id):
         evaluated += 1
         consistency_issues += len(ev.report.get("consistency", {}).get("issues", []))
@@ -120,7 +122,10 @@ def run(project_id: str, judge_ctx: int) -> Path:
     outputs["C"] = "\n\n".join(parts)
     meta["C"] = {"topics_with_notes": len(parts), "topics": len(parents), "calls": len(runs),
                  "seconds": round(sum(r.duration_s or 0 for r in runs), 1), "evaluated_topics": evaluated,
-                 "consistency_issues": consistency_issues}
+                 "consistency_issues": consistency_issues,
+                 # Fidelity of what the pipeline itself labels as coming from the source (supplementary
+                 # content is disclosed to the student, so it is reported separately rather than as fabrication).
+                 "source_labelled_unsupported_numbers": sorted(numbers_in(" ".join(source_labelled_text)) - numbers_in(source_text))}
     log("C collected")
 
     for k, v in outputs.items():
@@ -135,6 +140,7 @@ def run(project_id: str, judge_ctx: int) -> Path:
         lexical = [u for u in units if lexical_coverage(u, text)]
         unsupported_numbers = sorted(numbers_in(text) - numbers_in(source_text))
         entry = {"words": len(text.split()), "sections": len(re.findall(r"(?m)^#{2,4} ", text)),
+                 "words_per_unit": round(len(text.split()) / max(len(units), 1), 1),
                  "lexical_topic_coverage_pct": round(100 * len(lexical) / max(len(units), 1), 1),
                  "units_not_covered": [u for u in units if u not in lexical],
                  "unsupported_numbers": unsupported_numbers, **meta[key]}
@@ -148,6 +154,7 @@ def run(project_id: str, judge_ctx: int) -> Path:
                                                          "source": format_source(chunks, jbudget).text})
                 v = verdict.output.model_dump()
                 entry["judge"] = v
+                entry["judge_prompt"] = f"{verdict.template_id}@{verdict.version}"
                 entry["judge_topic_coverage_pct"] = round(100 * sum(t["adequately_covered"] for t in v["topic_coverage"]) /
                                                           max(len(v["topic_coverage"]), 1), 1)
             except Exception as exc:  # noqa: BLE001 - record, never invent
@@ -173,16 +180,16 @@ def run(project_id: str, judge_ctx: int) -> Path:
 
 
 def summarize(paths: list[Path]) -> str:
-    rows = ["| Material | Approach | Words | Lexical coverage | Judge coverage | Completeness | Fidelity | Readability | Relevance | Unsupported claims (judge) | Unsupported numbers |",
-            "|---|---|---|---|---|---|---|---|---|---|---|"]
+    rows = ["| Material | Approach | Words | Words/unit | Lexical coverage | Judge coverage | Merely listed | Completeness | Fidelity | Readability | Relevance | Unsupported claims (judge) | Unsupported numbers |",
+            "|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
     names = {"A": "A baseline", "B": "B structured", "C": "C multi-stage"}
     for path in paths:
         data = json.loads(path.read_text(encoding="utf-8"))
         for key, r in data["results"].items():
             j = r.get("judge") or {}
-            rows.append(f"| {data['project']} | {names[key]} | {r['words']} | {r['lexical_topic_coverage_pct']}% | "
+            rows.append(f"| {data['project']} | {names[key]} | {r['words']} | {r.get('words_per_unit', 'n/a')} | {r['lexical_topic_coverage_pct']}% | "
                         f"{str(r.get('judge_topic_coverage_pct', 'n/a')) + '%' if r.get('judge_topic_coverage_pct') is not None else 'n/a'} | "
-                        f"{j.get('completeness', 'n/a')} | {j.get('source_fidelity', 'n/a')} | {j.get('readability', 'n/a')} | "
+                        f"{len(j['merely_listed_concepts']) if 'merely_listed_concepts' in j else 'n/a'} | {j.get('completeness', 'n/a')} | {j.get('source_fidelity', 'n/a')} | {j.get('readability', 'n/a')} | "
                         f"{j.get('relevance', 'n/a')} | {len(j.get('unsupported_claims', [])) if j else 'n/a'} | {len(r['unsupported_numbers'])} |")
     return "\n".join(rows)
 

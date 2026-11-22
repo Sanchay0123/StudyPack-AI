@@ -59,7 +59,8 @@ def evaluate_topic(runner: StageRunner, ctx: TopicContext, notes: dict[str, Any]
     report["missing_units"] = [c.unit for c in coverage if c.status == "missing"]
     report["partial_units"] = [c.unit for c in coverage if c.status == "partial"]
     report["grounding"] = check_grounding(notes, chunks_by_id)
-    source_text = "\n".join(chunks_by_id[c].content for c in ctx.topic_chunk_ids() if c in chunks_by_id)
+    source_text = "\n".join(f"{chunks_by_id[c].heading or ''}\n{chunks_by_id[c].content}"
+                            for c in ctx.topic_chunk_ids() if c in chunks_by_id)  # headings are source text too
     report["consistency"] = check_consistency(notes, other_resources or {}, source_text)
     if llm_eval:
         report["llm"] = llm_eval

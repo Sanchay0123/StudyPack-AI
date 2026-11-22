@@ -12,8 +12,8 @@ _Last updated: 2026-11-22, session 1._
 | 5 | Resource generation (7 types), progress, resume, retry | ✅ Done | Live: CS pack 35/35 resources; resume/retry tests |
 | 6 | Quality assurance (coverage, grounding, consistency, P11, P12, report) | ✅ Done | Live evaluate + refine on all topics; QA fixes from live findings (see log) |
 | 7 | UI & persistence | ✅ Done | 10 pages; every page rendered with content in tests; generation/evaluation/refine/quiz/editor driven through UI controls; screenshots reviewed |
-| 8 | Export + Gemini | ✅ Markdown & PDF done; Gemini implemented, **not verified with a valid key** | Invalid-key path verified against the real Gemini API (auth error → fallback to Ollama) |
-| 9 | Final validation & experiments | 🚧 In progress | 3-domain E2E done (102/105 first pass, 105/105 after retry); QA pass 2 + A/B/C experiment pending (stopped: low RAM) |
+| 8 | Export + Gemini | ✅ Markdown & PDF done; Gemini implemented, **not verified with a valid key** | Invalid key and non-responding endpoint verified against the real SDK → fallback to Ollama; cooldown circuit breaker |
+| 9 | Final validation & experiments | ✅ Done (with documented gaps) | 3-domain E2E: 105/105 resources; QA pass with current logic on all 15 topics; A/B/C experiment on 3 packs (docs/EXPERIMENT_RESULTS.md) |
 
 ## Environment (verified)
 - Windows 11, Python 3.12.5, virtualenv `.venv/` (inside project)
@@ -31,7 +31,7 @@ center with flashcards, quiz center with hidden answers and scoring, quality rep
 (TOC, page numbers, rendered flowcharts/mindmaps/timelines) · Ollama + Gemini providers with fallback · experiment runner · CLI pipeline.
 
 ## Tests executed
-- Offline suite: `pytest` → **112 passed** (most recent full run).
+- Offline suite: `pytest` → **117 passed** (most recent full run).
 - Live: `pytest -m live` → passed (real model round trip).
 - Live failure modes (real servers): missing model → `ModelNotFoundError` with pull command; unreachable server →
   `ProviderUnavailableError`; invalid Gemini key → real API 400 mapped to `ProviderAuthError` → served by Ollama fallback;
@@ -54,6 +54,13 @@ center with flashcards, quiz center with hidden answers and scoring, quality rep
     findings no longer fail a topic.
 12. Lexical term coverage missed plurals → stem-based matching.
 13. UX: generation tied to the open page → background job runner with live progress, stop button, deep links (`?project=`).
+14. Quiz "multi_select" with one correct answer (2 History failures) → normalised to mcq; over-strict Mermaid label check
+    (rejected `&`) → unsafe labels are now quoted mechanically.
+15. P12 rewrote sections without findings, treated Summary/Key terms as sections, replaced+removed the same section → P12 1.1.0
+    + code enforcement.
+16. Gemini outage would make every request wait out the full timeout → cooldown circuit breaker (`PROVIDER_COOLDOWN_S`).
+17. Experiment judge ceiling effect → X03 1.1.0 anchored rubric + `merely_listed_concepts` + deterministic words-per-unit.
+18. Deterministic checks ignored headings (slide titles) as source text → false "unsupported numbers" (1760/1840) → fixed (+ test).
 
 ## Three-domain end-to-end validation (live, qwen3.5:4b-q4_K_M, RTX 3050 6 GB)
 | Pack | Detected subject / domain | Strategy (example style; note sections) | Pass 1 generation | Notes |
@@ -68,11 +75,21 @@ All three packs exported to Markdown and PDF (`generated/<project id>/`).
 variables" — actually four). P11 flagged it as a *high-severity unsupported claim* and a *factual concern*; P12 rewrote the
 section; re-evaluation of v2 no longer reports it and the sentence is gone.
 
-**Pass 2 (current QA logic)** was stopped by the host when the system ran out of RAM (0.3 GB free of 15.7 GB; mostly
-other applications + the loaded model). Completed before the stop: the 3 failed History items regenerated, 4/5 History topics
-re-evaluated/refined. Remaining: History "Factory System" refine and "Consequences", all Physics and CS topics, then the A/B/C
-experiment. Resume with:
-`.venv\Scripts\python scripts\run_pipeline.py --project-id <id> --skip-analysis --resources all --evaluate --refine --export`
+**Final QA pass (current QA logic, all 15 topics):**
+
+| Pack | Topics passed | Mean verified coverage | Partial subtopics | Unsupported claims (none high severity) |
+|---|---|---|---|---|
+| Kinematics (Physics) | 5/5 | 100% | 0 | 2 |
+| Computer Networks | 4/5 | 95% | 1 (TCP/IP "Internet Layer" judged thin, evidence verified) | 3 |
+| Industrial Revolution (History) | 1/5 | 95% | 1 | 4 |
+
+History has the most remaining findings, which is consistent with its source: slide bullets with little explanation.
+The TCP/IP refinement, which overflowed the context in pass 1, now fits.
+
+**A/B/C experiment** (see docs/EXPERIMENT_RESULTS.md): the baseline obeyed the injected instruction (its whole output was
+`BANANA`); B and C did not. C has 6–8× more explanation per topic unit than B, and its "from source" sections contain no
+numbers that are absent from the source. The 4B LLM judge did **not** discriminate (it gave 62.5% coverage to a one-word output),
+so its rubric scores are reported but not used as evidence. A stronger judge (Gemini) and human ratings are pending.
 
 ## Known limitations / pending
 - Gemini: needs a real key to verify generation (code path, error mapping and fallback verified).
@@ -82,6 +99,10 @@ experiment. Resume with:
 - Small model quality: outputs are validated and labelled, but the evaluator is itself a 4B model; its findings are
   verified where possible (evidence quotes) and otherwise shown as findings, not facts.
 
+- Experiment: the LLM judge (same 4B model) is not discriminating; human ratings are not collected yet (CSV templates provided).
+- Validation so far uses three short synthetic sample documents; real multi-file courses have not been tested.
+
 ## Next recommended action
-Finish the 3-domain E2E (physics, history), re-run evaluation/refinement with the updated QA logic, run the A/B/C
-experiment on the three packs and record the results here.
+1. Configure `GEMINI_API_KEY` and verify Gemini generation; re-run `experiments/run_experiment.py` with Gemini as judge.
+2. Fill in `experiments/results/*.human_ratings.csv` (blinded).
+3. Test with real course material (long PDFs, several files per pack); optionally install Tesseract for OCR.

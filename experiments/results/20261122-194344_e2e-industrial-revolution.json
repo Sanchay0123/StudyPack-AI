@@ -1,0 +1,451 @@
+{
+  "project_id": "prj_90d27019a1fd",
+  "project": "E2E Industrial Revolution",
+  "subject": "The Industrial Revolution in Britain",
+  "timestamp": "20261122-194344",
+  "model": "qwen3.5:4b-q4_K_M",
+  "provider": "ollama",
+  "generation_context": 8192,
+  "judge_context": 16384,
+  "coverage_units": [
+    "Definition of the Industrial Revolution",
+    "Geographical Spread",
+    "Transformations",
+    "Agricultural Revolution",
+    "Natural Resources",
+    "Financial Capital",
+    "Colonial Markets",
+    "Political Stability",
+    "Spinning Jenny",
+    "Improved Steam Engine",
+    "Spinning Mule",
+    "Later Innovations",
+    "Transition from Domestic System",
+    "Wage Labour and Hours",
+    "Child Labour",
+    "Factory Act of 1833",
+    "Rapid Urbanisation",
+    "Housing and Sanitation Issues",
+    "Social Class Formation",
+    "Working Class Organisation",
+    "Productivity and Living Standards"
+  ],
+  "results": {
+    "A": {
+      "words": 389,
+      "sections": 7,
+      "words_per_unit": 18.5,
+      "lexical_topic_coverage_pct": 81.0,
+      "units_not_covered": [
+        "Transformations",
+        "Rapid Urbanisation",
+        "Housing and Sanitation Issues",
+        "Social Class Formation"
+      ],
+      "unsupported_numbers": [],
+      "seconds": 22.8,
+      "source_chunks_used": 5,
+      "source_chunks_total": 5,
+      "calls": 1,
+      "judge": {
+        "topic_coverage": [
+          {
+            "topic": "Definition of the Industrial Revolution",
+            "adequately_covered": true,
+            "note": "Provides clear definition and context."
+          },
+          {
+            "topic": "Geographical Spread",
+            "adequately_covered": true,
+            "note": "Explicitly states origin in Britain and spread to Europe/North America."
+          },
+          {
+            "topic": "Transformations",
+            "adequately_covered": true,
+            "note": "Lists transformed sectors (economy, society, environment)."
+          },
+          {
+            "topic": "Agricultural Revolution",
+            "adequately_covered": true,
+            "note": "Explains mechanism (enclosure/crop rotation) and effect (freed labour)."
+          },
+          {
+            "topic": "Natural Resources",
+            "adequately_covered": true,
+            "note": "Identifies coal and iron ore as key resources."
+          },
+          {
+            "topic": "Financial Capital",
+            "adequately_covered": true,
+            "note": "Links trade wealth and banking systems to funding."
+          },
+          {
+            "topic": "Colonial Markets",
+            "adequately_covered": true,
+            "note": "Mentions colonial access for markets and raw materials like cotton."
+          },
+          {
+            "topic": "Political Stability",
+            "adequately_covered": true,
+            "note": "Connects stable government and patent protection to invention encouragement."
+          },
+          {
+            "topic": "Spinning Jenny",
+            "adequately_covered": true,
+            "note": "Provides date, inventor, and specific function (increased speed)."
+          },
+          {
+            "topic": "Improved Steam Engine",
+            "adequately_covered": true,
+            "note": "Provides date, inventor, and role as power source."
+          },
+          {
+            "topic": "Spinning Mule",
+            "adequately_covered": true,
+            "note": "Provides date, inventor, and explains it combined benefits of jenny and water frame."
+          },
+          {
+            "topic": "Later Innovations",
+            "adequately_covered": false,
+            "note": "Only lists the railway; lacks explanation of its significance beyond transport revolutionization."
+          },
+          {
+            "topic": "Transition from Domestic System",
+            "adequately_covered": true,
+            "note": "Uses a comparison table to explain the shift in location and labor organization."
+          },
+          {
+            "topic": "Wage Labour and Hours",
+            "adequately_covered": true,
+            "note": "Contrasts irregular hours with fixed wages and long hours in factories."
+          },
+          {
+            "topic": "Child Labour",
+            "adequately_covered": true,
+            "note": "Notes its prevalence and links it to the Factory Act of 1833."
+          },
+          {
+            "topic": "Factory Act of 1833",
+            "adequately_covered": true,
+            "note": "Identifies the act and its purpose regarding child working hours."
+          },
+          {
+            "topic": "Rapid Urbanisation",
+            "adequately_covered": true,
+            "note": "Cites Manchester as an example of city growth."
+          },
+          {
+            "topic": "Housing and Sanitation Issues",
+            "adequately_covered": true,
+            "note": "Links poor conditions to disease outbreaks."
+          },
+          {
+            "topic": "Social Class Formation",
+            "adequately_covered": true,
+            "note": "Identifies the rise of working and middle classes."
+          },
+          {
+            "topic": "Working Class Organisation",
+            "adequately_covered": true,
+            "note": "Mentions growth of trade unions and demands for reform."
+          },
+          {
+            "topic": "Productivity and Living Standards",
+            "adequately_covered": true,
+            "note": "Distinguishes between long-term productivity gains and overall living standard increases."
+          }
+        ],
+        "merely_listed_concepts": [
+          "Later Innovations"
+        ],
+        "completeness": 4,
+        "completeness_reason": "All required topics are covered with sufficient depth (definitions, mechanisms, examples). The only minor gap is 'Later Innovations', which lists the railway but lacks the explanatory depth found in other entries.",
+        "source_fidelity": 5,
+        "source_fidelity_reason": "The notes accurately reflect the source material without distortion or contradiction. Background knowledge added (e.g., linking water frame to spinning mule) is consistent with standard historical understanding and does not contradict the source.",
+        "readability": 5,
+        "readability_reason": "Excellent structure using clear headings, bullet points, and comparison tables makes the material easy to study and follow.",
+        "relevance": 5,
+        "relevance_reason": "Every section directly supports the learning objectives of the Industrial Revolution course material.",
+        "unsupported_claims": []
+      },
+      "judge_prompt": "X03@1.1.0+e511329",
+      "judge_topic_coverage_pct": 95.2,
+      "unsupported_numbers_note": "recomputed after including headings in the source text (deterministic, same outputs)"
+    },
+    "B": {
+      "words": 642,
+      "sections": 7,
+      "words_per_unit": 30.6,
+      "lexical_topic_coverage_pct": 100.0,
+      "units_not_covered": [],
+      "unsupported_numbers": [],
+      "seconds": 29.9,
+      "attempts": 1,
+      "calls": 1,
+      "source_chunks_used": 5,
+      "source_chunks_total": 5,
+      "judge": {
+        "topic_coverage": [
+          {
+            "topic": "Definition of the Industrial Revolution",
+            "adequately_covered": true,
+            "note": "Defines the shift from hand production to machines and notes the timeframe."
+          },
+          {
+            "topic": "Geographical Spread",
+            "adequately_covered": true,
+            "note": "Explicitly states origin in Britain and spread to Europe and North America."
+          },
+          {
+            "topic": "Transformations",
+            "adequately_covered": true,
+            "note": "Identifies transformations of economy, society, and environment."
+          },
+          {
+            "topic": "Agricultural Revolution",
+            "adequately_covered": true,
+            "note": "Explains the mechanism (enclosure/crop rotation) and its effect (freed labour)."
+          },
+          {
+            "topic": "Natural Resources",
+            "adequately_covered": true,
+            "note": "Identifies coal and iron ore as essential resources."
+          },
+          {
+            "topic": "Financial Capital",
+            "adequately_covered": true,
+            "note": "Explains capital availability through trade and banking systems."
+          },
+          {
+            "topic": "Colonial Markets",
+            "adequately_covered": true,
+            "note": "Identifies colonial markets and raw materials like cotton as factors."
+          },
+          {
+            "topic": "Political Stability",
+            "adequately_covered": true,
+            "note": "States that stable government encouraged invention."
+          },
+          {
+            "topic": "Spinning Jenny",
+            "adequately_covered": true,
+            "note": "Provides inventor (Hargreaves), date (1764), and function."
+          },
+          {
+            "topic": "Improved Steam Engine",
+            "adequately_covered": true,
+            "note": "Provides inventor (Watt), date (1769), and significance."
+          },
+          {
+            "topic": "Spinning Mule",
+            "adequately_covered": true,
+            "note": "Provides inventor (Crompton), date (1779), and purpose."
+          },
+          {
+            "topic": "Later Innovations",
+            "adequately_covered": true,
+            "note": "Includes the Liverpool and Manchester Railway (1830) as a key innovation."
+          },
+          {
+            "topic": "Transition from Domestic System",
+            "adequately_covered": true,
+            "note": "Explains the shift from home production to centralized factories."
+          },
+          {
+            "topic": "Wage Labour and Hours",
+            "adequately_covered": true,
+            "note": "States workers were paid wages and worked long, fixed hours."
+          },
+          {
+            "topic": "Child Labour",
+            "adequately_covered": true,
+            "note": "Notes it was widespread in early textile mills."
+          },
+          {
+            "topic": "Factory Act of 1833",
+            "adequately_covered": true,
+            "note": "Explains the act limited working hours for children."
+          },
+          {
+            "topic": "Rapid Urbanisation",
+            "adequately_covered": true,
+            "note": "Cites growth of cities like Manchester as an example."
+          },
+          {
+            "topic": "Housing and Sanitation Issues",
+            "adequately_covered": true,
+            "note": "Links poor housing/sanitation to disease outbreaks."
+          },
+          {
+            "topic": "Social Class Formation",
+            "adequately_covered": true,
+            "note": "Identifies the rise of working and middle classes."
+          },
+          {
+            "topic": "Working Class Organisation",
+            "adequately_covered": true,
+            "note": "Mentions growth of trade unions and demands for reform."
+          },
+          {
+            "topic": "Productivity and Living Standards",
+            "adequately_covered": true,
+            "note": "States a long-term rise in productivity and living standards."
+          }
+        ],
+        "merely_listed_concepts": [],
+        "completeness": 5,
+        "completeness_reason": "All required topics are adequately covered with definitions, mechanisms, examples, or specific cases as per the rubric.",
+        "source_fidelity": 5,
+        "source_fidelity_reason": "The notes accurately reflect all facts, dates, names, and causal relationships presented in the source material without distortion or contradiction.",
+        "readability": 5,
+        "readability_reason": "The notes are well-structured with clear headings, logical progression from causes to consequences, and a concise summary.",
+        "relevance": 5,
+        "relevance_reason": "All content directly serves the learning objectives of the Industrial Revolution material.",
+        "unsupported_claims": []
+      },
+      "judge_prompt": "X03@1.1.0+e511329",
+      "judge_topic_coverage_pct": 100.0,
+      "unsupported_numbers_note": "recomputed after including headings in the source text (deterministic, same outputs)"
+    },
+    "C": {
+      "words": 4915,
+      "sections": 47,
+      "words_per_unit": 234.0,
+      "lexical_topic_coverage_pct": 100.0,
+      "units_not_covered": [],
+      "unsupported_numbers": [
+        "1624"
+      ],
+      "topics_with_notes": 5,
+      "topics": 5,
+      "calls": 43,
+      "seconds": 1124.7,
+      "evaluated_topics": 5,
+      "consistency_issues": 1,
+      "source_labelled_unsupported_numbers": [],
+      "judge": {
+        "topic_coverage": [
+          {
+            "topic": "Definition of the Industrial Revolution",
+            "adequately_covered": true,
+            "note": "Provides clear definition, timeframe, and mechanism of shift from hand to machine production."
+          },
+          {
+            "topic": "Geographical Spread",
+            "adequately_covered": true,
+            "note": "Explains origin in Britain and spread to Europe/North America with reasoning on trade/technology diffusion."
+          },
+          {
+            "topic": "Transformations",
+            "adequately_covered": true,
+            "note": "Details changes in economy, society, and environment with specific examples of factory growth and environmental impact."
+          },
+          {
+            "topic": "Agricultural Revolution",
+            "adequately_covered": true,
+            "note": "Explains mechanism (enclosure/crop rotation) and its dual effect on food output and labor release."
+          },
+          {
+            "topic": "Natural Resources",
+            "adequately_covered": true,
+            "note": "Identifies coal and iron ore as critical resources and explains their specific roles in fueling machinery and building infrastructure."
+          },
+          {
+            "topic": "Financial Capital",
+            "adequately_covered": true,
+            "note": "Explains the role of trade and banking systems in channeling wealth into productive investment."
+          },
+          {
+            "topic": "Colonial Markets",
+            "adequately_covered": true,
+            "note": "Describes colonies as sources of raw materials (cotton) and export markets for manufactured goods."
+          },
+          {
+            "topic": "Political Stability",
+            "adequately_covered": true,
+            "note": "Links stable government and patent protection to the encouragement of invention."
+          },
+          {
+            "topic": "Spinning Jenny",
+            "adequately_covered": true,
+            "note": "Provides date (1764), inventor (Hargreaves), function (multiple spindles), and impact on yarn production."
+          },
+          {
+            "topic": "Improved Steam Engine",
+            "adequately_covered": true,
+            "note": "Explains the 1769 patent by Watt, the separate condenser mechanism, and its efficiency gains."
+          },
+          {
+            "topic": "Spinning Mule",
+            "adequately_covered": true,
+            "note": "Details 1779 invention by Crompton, synthesis of water frame and jenny, and ability to produce strong fine yarn."
+          },
+          {
+            "topic": "Later Innovations",
+            "adequately_covered": true,
+            "note": "Cites the 1830 Liverpool and Manchester Railway as a key later innovation connecting mining and manufacturing."
+          },
+          {
+            "topic": "Transition from Domestic System",
+            "adequately_covered": true,
+            "note": "Contrasts domestic piece-rate work with factory wage labor and fixed hours."
+          },
+          {
+            "topic": "Wage Labour and Hours",
+            "adequately_covered": true,
+            "note": "Explains the shift from self-accounting to supervised presence and time-based payment."
+          },
+          {
+            "topic": "Child Labour",
+            "adequately_covered": true,
+            "note": "Identifies widespread child labor in early textile mills as a defining characteristic before regulation."
+          },
+          {
+            "topic": "Factory Act of 1833",
+            "adequately_covered": true,
+            "note": "Explains the act's purpose to limit working hours for children and its role as legislative response."
+          },
+          {
+            "topic": "Rapid Urbanisation",
+            "adequately_covered": true,
+            "note": "Describes mechanisms of migration (push/pull factors) and cites Manchester as a key example."
+          },
+          {
+            "topic": "Housing and Sanitation Issues",
+            "adequately_covered": true,
+            "note": "Explains causes (density, lack of infrastructure) and consequences (disease outbreaks)."
+          },
+          {
+            "topic": "Social Class Formation",
+            "adequately_covered": true,
+            "note": "Defines the emergence of bourgeoisie and working class with their respective economic roles."
+          },
+          {
+            "topic": "Working Class Organisation",
+            "adequately_covered": true,
+            "note": "Describes growth of trade unions and demands for political reform in response to factory conditions."
+          },
+          {
+            "topic": "Productivity and Living Standards",
+            "adequately_covered": true,
+            "note": "Distinguishes between long-term productivity gains and initial hardships, citing aggregate economic progress."
+          }
+        ],
+        "merely_listed_concepts": [],
+        "completeness": 5,
+        "completeness_reason": "All required topics are adequately covered with definitions, mechanisms, examples, and reasoned explanations. No topic is merely listed.",
+        "source_fidelity": 5,
+        "source_fidelity_reason": "The notes accurately reflect the source material without distortion or contradiction. Supplementary background knowledge (e.g., defining piece-rate work) is clearly marked as such or presented as standard context, not as direct claims from the slides.",
+        "readability": 5,
+        "readability_reason": "The notes are well-structured with clear headings, logical progression, and consistent formatting that makes them easy to study.",
+        "relevance": 5,
+        "relevance_reason": "All content directly serves the learning objectives of the Industrial Revolution course material provided in the source.",
+        "unsupported_claims": []
+      },
+      "judge_prompt": "X03@1.1.0+e511329",
+      "judge_topic_coverage_pct": 100.0,
+      "unsupported_numbers_note": "recomputed after including headings in the source text (deterministic, same outputs)"
+    }
+  },
+  "raw_outputs_dir": "experiments\\runs\\20261122-194344_prj_90d27019a1fd"
+}

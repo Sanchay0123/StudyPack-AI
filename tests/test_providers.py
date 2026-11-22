@@ -179,3 +179,46 @@ def test_live_ollama_roundtrip():
         system="You are a concise assistant.", prompt="Reply with exactly one word: the capital of France.",
         max_tokens=20, temperature=0.0))
     assert "paris" in result.text.lower()
+
+
+def test_unresponsive_primary_is_skipped_during_cooldown_then_retried():
+    from providers.exceptions import ProviderTimeoutError
+    primary = ScriptedProvider("gemini", error=ProviderTimeoutError("no response"))
+    fallback = ScriptedProvider("ollama", text="local")
+    router = ProviderRouter(primary, fallback, cooldown_s=60)
+    req = GenerationRequest(system="s", prompt="p")
+    assert router.generate(req).text == "local" and primary.calls == 1
+    for _ in range(3):  # within the cooldown: no more waiting on the dead primary
+        assert router.generate(req).text == "local"
+    assert primary.calls == 1 and fallback.calls == 4
+    assert router.cooling_down("gemini") > 0
+    router._skip_until["gemini"] = 0  # cooldown elapsed
+    primary.error = None  # Gemini is back
+    assert router.generate(req).provider == "gemini" and primary.calls == 2
+    assert router.cooling_down("gemini") == 0
+
+
+def test_cooldown_not_triggered_by_content_errors():
+    primary = ScriptedProvider("gemini", error=ProviderResponseError("blocked"))
+    router = ProviderRouter(primary, ScriptedProvider("ollama"), cooldown_s=60)
+    with pytest.raises(ProviderResponseError):
+        router.generate(GenerationRequest(system="s", prompt="p"))
+    assert router.cooling_down("gemini") == 0
+
+
+def test_gemini_timeout_maps_to_fallback_eligible_error():
+    class ReadTimeout(Exception):  # stands in for the HTTP client's timeout exception
+        pass
+    from providers.exceptions import ProviderTimeoutError
+
+    class TimeoutModels:  # TEST FIXTURE: SDK call that never answers
+        def generate_content(self, **kwargs):
+            raise ReadTimeout("timed out")
+
+    class Client:
+        models = TimeoutModels()
+
+    provider = GeminiProvider(Settings(gemini_api_key="k"), client=Client())
+    with pytest.raises(ProviderTimeoutError) as info:
+        provider.generate(GenerationRequest(system="s", prompt="p"))
+    assert info.value.fallback_eligible

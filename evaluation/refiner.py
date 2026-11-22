@@ -17,12 +17,33 @@ def _key(text: str) -> str:
     return re.sub(r"\W+", " ", (text or "").lower()).strip()
 
 
-def apply_revisions(notes: dict[str, Any], refinement: NotesRefinement) -> tuple[dict[str, Any], list[str]]:
+def affected_sections(notes: dict[str, Any], findings: list[str]) -> list[str]:
+    joined = " ".join(findings).lower()
+    return [s["heading"] for s in notes.get("sections", []) if s["heading"].lower() in joined]
+
+
+def apply_revisions(notes: dict[str, Any], refinement: NotesRefinement,
+                    allowed: set[str] | None = None) -> tuple[dict[str, Any], list[str]]:
+    """Apply section-level edits. If `allowed` is given, replace/remove only touch those headings."""
     updated = copy.deepcopy(notes)
     sections = updated["sections"]
     applied = []
+    replaced_targets = {_key(r.target_heading) for r in refinement.revisions if r.action == "replace" and r.section}
     for rev in refinement.revisions:
         target = _key(rev.target_heading)
+        new_heading = _key(rev.section.heading) if rev.section else ""
+        # "Summary" / "Overview" / "Key terms" are fields of the notes, not sections.
+        field_target = next((f for f in ("summary", "overview", "key terms") if f in (target, new_heading)), None)
+        if field_target:
+            if rev.section and field_target in ("summary", "overview") and rev.action in ("replace", "add"):
+                updated[field_target] = rev.section.content
+                applied.append(f"updated {field_target}")
+            continue  # key terms are not edited through sections
+        if rev.action == "remove" and target in replaced_targets:
+            continue  # the model both fixed and removed this section: keep the fix
+        if allowed is not None and rev.action in ("replace", "remove") and target not in {_key(h) for h in allowed}:
+            applied.append(f"skipped (no findings for this section): {rev.target_heading}")
+            continue
         index = next((i for i, s in enumerate(sections) if _key(s["heading"]) == target), None)
         if index is None:
             index = next((i for i, s in enumerate(sections) if target and (target in _key(s["heading"]) or _key(s["heading"]) in target)), None)
@@ -67,6 +88,7 @@ def refine_notes(runner: StageRunner, ctx: TopicContext, notes: dict[str, Any], 
     variables = {"subject": ctx.subject, "topic_title": ctx.topic.title,
                  "findings": "\n".join(f"{i + 1}. {f}" for i, f in enumerate(findings)),
                  "section_headings": "; ".join(s["heading"] for s in notes.get("sections", [])),
+                 "affected_sections": "; ".join(affected_sections(notes, findings)) or "(none named - findings concern missing or thin coverage)",
                  "notes_text": notes_to_text(notes), "source": ""}
     probe = runner.build("refinement", variables)
     budget = source_budget(runner.settings.context_length, runner.max_output_for(probe), probe.system + probe.user)
@@ -84,7 +106,8 @@ def refine_notes(runner: StageRunner, ctx: TopicContext, notes: dict[str, Any], 
     variables["source"] = bundle.text
     result = runner.run("refinement", variables)
     refinement: NotesRefinement = result.output  # type: ignore[assignment]
-    updated, applied = apply_revisions(notes, refinement)
+    allowed = None if any(f.startswith(("MISSING", "THIN")) for f in findings) else set(affected_sections(notes, findings))
+    updated, applied = apply_revisions(notes, refinement, allowed)
     # Map refinement labels into the notes' label space.
     existing = {v["chunk_id"]: lab for lab, v in notes.get("_sources", {}).items()}
     sources = dict(notes.get("_sources", {}))

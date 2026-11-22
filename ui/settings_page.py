@@ -28,6 +28,13 @@ def render() -> None:
         st.markdown(f"{pill('available' if s['available'] else 'unavailable', kind)} **{s['provider']}** — `{s['model']}`  \n{s['message']}",
                     unsafe_allow_html=True)
 
+    router = get_router()
+    for p in router.chain[:-1]:
+        left = router.cooling_down(p.name)
+        if left:
+            st.warning(f"{p.name} failed recently (no response / network / quota / key). Requests go to "
+                       f"{router.chain[-1].name} for another {left:.0f}s, then {p.name} is tried again.")
+
     st.subheader("Hardware & runtime")
     cols = st.columns(3)
     gpus = detect_gpus()

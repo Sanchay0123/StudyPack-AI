@@ -1,0 +1,381 @@
+{
+  "project_id": "prj_f9da50c05c3f",
+  "project": "E2E Computer Networks",
+  "subject": "Computer Networks",
+  "timestamp": "20261122-194130",
+  "model": "qwen3.5:4b-q4_K_M",
+  "provider": "ollama",
+  "generation_context": 8192,
+  "judge_context": 16384,
+  "coverage_units": [
+    "Definition and Purpose of Computer Networks",
+    "Guided (Wired) Transmission Media",
+    "Unguided Transmission Media",
+    "Bus Topology",
+    "Ring, Star, Mesh, and Hybrid Topologies",
+    "Layer 7: Application",
+    "Layer 6: Presentation",
+    "Layer 5: Session",
+    "Layer 4: Transport",
+    "Layer 3: Network",
+    "Layer 2: Data Link",
+    "Layer 1: Physical",
+    "Application Layer",
+    "Transport Layer",
+    "Internet Layer",
+    "Network Access (Link) Layer"
+  ],
+  "results": {
+    "A": {
+      "words": 1,
+      "sections": 0,
+      "words_per_unit": 0.1,
+      "lexical_topic_coverage_pct": 0.0,
+      "units_not_covered": [
+        "Definition and Purpose of Computer Networks",
+        "Guided (Wired) Transmission Media",
+        "Unguided Transmission Media",
+        "Bus Topology",
+        "Ring, Star, Mesh, and Hybrid Topologies",
+        "Layer 7: Application",
+        "Layer 6: Presentation",
+        "Layer 5: Session",
+        "Layer 4: Transport",
+        "Layer 3: Network",
+        "Layer 2: Data Link",
+        "Layer 1: Physical",
+        "Application Layer",
+        "Transport Layer",
+        "Internet Layer",
+        "Network Access (Link) Layer"
+      ],
+      "unsupported_numbers": [],
+      "seconds": 8.6,
+      "source_chunks_used": 5,
+      "source_chunks_total": 5,
+      "calls": 1,
+      "judge": {
+        "topic_coverage": [
+          {
+            "topic": "Definition and Purpose of Computer Networks",
+            "adequately_covered": true,
+            "note": "Provides definition, purpose (resource sharing, communication), and classification examples."
+          },
+          {
+            "topic": "Guided (Wired) Transmission Media",
+            "adequately_covered": false,
+            "note": "Lists types but lacks detailed explanation of mechanisms or specific use cases beyond brief descriptions."
+          },
+          {
+            "topic": "Unguided Transmission Media",
+            "adequately_covered": false,
+            "note": "Lists types but lacks detailed explanation of mechanisms or specific use cases."
+          },
+          {
+            "topic": "Bus Topology",
+            "adequately_covered": true,
+            "note": "Explains structure, pros/cons (single point of failure), and collision issues."
+          },
+          {
+            "topic": "Ring, Star, Mesh, and Hybrid Topologies",
+            "adequately_covered": false,
+            "note": "Lists structures and some characteristics but lacks deep reasoning on data flow or specific failure modes for all types."
+          },
+          {
+            "topic": "Layer 7: Application",
+            "adequately_covered": true,
+            "note": "Defines function and provides examples (HTTP, FTP)."
+          },
+          {
+            "topic": "Layer 6: Presentation",
+            "adequately_covered": true,
+            "note": "Defines function with examples (translation, encryption, compression)."
+          },
+          {
+            "topic": "Layer 5: Session",
+            "adequately_covered": true,
+            "note": "Defines function with examples (establishing/managing sessions)."
+          },
+          {
+            "topic": "Layer 4: Transport",
+            "adequately_covered": true,
+            "note": "Defines function and provides specific protocol examples (TCP, UDP) with mechanisms."
+          },
+          {
+            "topic": "Layer 3: Network",
+            "adequately_covered": true,
+            "note": "Defines function with examples (IP, routing)."
+          },
+          {
+            "topic": "Layer 2: Data Link",
+            "adequately_covered": true,
+            "note": "Defines function with examples (framing, MAC addressing)."
+          },
+          {
+            "topic": "Layer 1: Physical",
+            "adequately_covered": true,
+            "note": "Defines function (raw bit transmission)."
+          },
+          {
+            "topic": "Application Layer",
+            "adequately_covered": false,
+            "note": "Merged with OSI Layer 7; lacks specific TCP/IP context or examples."
+          },
+          {
+            "topic": "Transport Layer",
+            "adequately_covered": true,
+            "note": "Covered under OSI Layer 4 and TCP/IP Transport; sufficient depth."
+          },
+          {
+            "topic": "Internet Layer",
+            "adequately_covered": false,
+            "note": "Merged with OSI Layer 3; lacks specific TCP/IP context or examples."
+          },
+          {
+            "topic": "Network Access (Link) Layer",
+            "adequately_covered": false,
+            "note": "Merged with OSI Layer 2; lacks specific TCP/IP context or examples."
+          }
+        ],
+        "merely_listed_concepts": [],
+        "completeness": 3,
+        "completeness_reason": "Roughly half of the required topics are adequately covered with definitions and examples. The remaining topics (specific transmission media details, specific topology mechanisms beyond basic description, and TCP/IP layer specifics) are either merely listed or lack the depth required for a student to learn them from scratch.",
+        "source_fidelity": 5,
+        "source_fidelity_reason": "The notes accurately reflect the source material without distortion, contradiction, or invented specifics. Standard textbook background (like mentioning TCP/IP layers) is acceptable and does not constitute a fidelity error.",
+        "readability": 4,
+        "readability_reason": "The notes are generally well-structured with clear headings and bullet points. However, the lack of explanatory depth in some sections makes it slightly harder to follow the reasoning compared to a fully explained text.",
+        "relevance": 5,
+        "relevance_reason": "All content is directly relevant to the required topics from the course material.",
+        "unsupported_claims": []
+      },
+      "judge_prompt": "X03@1.1.0+e511329",
+      "judge_topic_coverage_pct": 62.5,
+      "unsupported_numbers_note": "recomputed after including headings in the source text (deterministic, same outputs)"
+    },
+    "B": {
+      "words": 887,
+      "sections": 11,
+      "words_per_unit": 55.4,
+      "lexical_topic_coverage_pct": 100.0,
+      "units_not_covered": [],
+      "unsupported_numbers": [],
+      "seconds": 40.1,
+      "attempts": 1,
+      "calls": 1,
+      "source_chunks_used": 5,
+      "source_chunks_total": 5,
+      "judge": {
+        "topic_coverage": [
+          {
+            "topic": "Definition and Purpose of Computer Networks",
+            "adequately_covered": true,
+            "note": "Provides definition, functions (resource sharing, communication, management), and geographic classification with examples."
+          },
+          {
+            "topic": "Guided (Wired) Transmission Media",
+            "adequately_covered": true,
+            "note": "Lists types and explains mechanisms (twisting for interference reduction, shielding) and characteristics (cost, bandwidth)."
+          },
+          {
+            "topic": "Unguided Transmission Media",
+            "adequately_covered": true,
+            "note": "Lists types (radio, microwaves, infrared) and context within the guided/unguided distinction."
+          },
+          {
+            "topic": "Bus Topology",
+            "adequately_covered": true,
+            "note": "Explains mechanism (single backbone), pros/cons (collisions, single point of failure), and provides a worked case scenario."
+          },
+          {
+            "topic": "Ring, Star, Mesh, and Hybrid Topologies",
+            "adequately_covered": true,
+            "note": "Explains mechanisms for all four types, including specific formulas for mesh links and failure scenarios."
+          },
+          {
+            "topic": "Layer 7: Application",
+            "adequately_covered": true,
+            "note": "Defines purpose (user services) and provides examples (HTTP, FTP)."
+          },
+          {
+            "topic": "Layer 6: Presentation",
+            "adequately_covered": true,
+            "note": "Defines function (translation, encryption, compression) with clear examples."
+          },
+          {
+            "topic": "Layer 5: Session",
+            "adequately_covered": true,
+            "note": "Defines function (establishing/managing/terminating sessions)."
+          },
+          {
+            "topic": "Layer 4: Transport",
+            "adequately_covered": true,
+            "note": "Explains mechanisms (segmentation, flow control) and provides examples (TCP, UDP)."
+          },
+          {
+            "topic": "Layer 3: Network",
+            "adequately_covered": true,
+            "note": "Defines function (logical addressing, routing) with example (IP)."
+          },
+          {
+            "topic": "Layer 2: Data Link",
+            "adequately_covered": true,
+            "note": "Defines function (framing, MAC addressing, error detection)."
+          },
+          {
+            "topic": "Layer 1: Physical",
+            "adequately_covered": true,
+            "note": "Defines function (raw bit transmission)."
+          },
+          {
+            "topic": "Application Layer",
+            "adequately_covered": true,
+            "note": "Contextualized within TCP/IP model and mapped to OSI layers."
+          },
+          {
+            "topic": "Transport Layer",
+            "adequately_covered": true,
+            "note": "Detailed explanation of TCP vs UDP mechanisms including handshake details."
+          },
+          {
+            "topic": "Internet Layer",
+            "adequately_covered": true,
+            "note": "Mapped to OSI Network layer and associated with IP."
+          },
+          {
+            "topic": "Network Access (Link) Layer",
+            "adequately_covered": true,
+            "note": "Mapped to OSI Data Link and Physical layers."
+          }
+        ],
+        "merely_listed_concepts": [],
+        "completeness": 5,
+        "completeness_reason": "All required topics are adequately covered with definitions, mechanisms, examples, or worked cases as per the rubric.",
+        "source_fidelity": 5,
+        "source_fidelity_reason": "The notes accurately reflect the source material without distortion, contradiction, or invented specifics. Standard textbook background is used appropriately.",
+        "readability": 5,
+        "readability_reason": "The notes are well-structured with clear headings, logical progression from introduction to specific layers, and easy-to-follow explanations.",
+        "relevance": 5,
+        "relevance_reason": "All content directly serves the learning objectives of the course material on computer networks.",
+        "unsupported_claims": []
+      },
+      "judge_prompt": "X03@1.1.0+e511329",
+      "judge_topic_coverage_pct": 100.0,
+      "unsupported_numbers_note": "recomputed after including headings in the source text (deterministic, same outputs)"
+    },
+    "C": {
+      "words": 5394,
+      "sections": 43,
+      "words_per_unit": 337.1,
+      "lexical_topic_coverage_pct": 100.0,
+      "units_not_covered": [],
+      "unsupported_numbers": [],
+      "topics_with_notes": 5,
+      "topics": 5,
+      "calls": 33,
+      "seconds": 819.5,
+      "evaluated_topics": 5,
+      "consistency_issues": 2,
+      "source_labelled_unsupported_numbers": [],
+      "judge": {
+        "topic_coverage": [
+          {
+            "topic": "Definition and Purpose of Computer Networks",
+            "adequately_covered": true,
+            "note": "Provides definition, purpose (resource sharing, management), and examples."
+          },
+          {
+            "topic": "Guided (Wired) Transmission Media",
+            "adequately_covered": true,
+            "note": "Defines guided media, lists types, explains mechanisms (twisting, shielding) and advantages."
+          },
+          {
+            "topic": "Unguided Transmission Media",
+            "adequately_covered": true,
+            "note": "Defines unguided media, lists types (radio, microwaves, infrared)."
+          },
+          {
+            "topic": "Bus Topology",
+            "adequately_covered": true,
+            "note": "Explains structure (shared backbone), pros/cons (collisions, single break failure)."
+          },
+          {
+            "topic": "Ring, Star, Mesh, and Hybrid Topologies",
+            "adequately_covered": true,
+            "note": "Explains structure for all four types, including the mesh formula."
+          },
+          {
+            "topic": "Layer 7: Application",
+            "adequately_covered": true,
+            "note": "Defines function (user services) and gives examples (HTTP, FTP)."
+          },
+          {
+            "topic": "Layer 6: Presentation",
+            "adequately_covered": true,
+            "note": "Defines function (translation, encryption, compression)."
+          },
+          {
+            "topic": "Layer 5: Session",
+            "adequately_covered": true,
+            "note": "Explains function (establishment, management, termination) with clear examples."
+          },
+          {
+            "topic": "Layer 4: Transport",
+            "adequately_covered": true,
+            "note": "Explains function (end-to-end delivery) and details TCP/UDP mechanisms."
+          },
+          {
+            "topic": "Layer 3: Network",
+            "adequately_covered": true,
+            "note": "Defines function (logical addressing, routing) with IP example."
+          },
+          {
+            "topic": "Layer 2: Data Link",
+            "adequately_covered": true,
+            "note": "Defines function (framing, MAC addressing, error detection) and notes 'single link' scope."
+          },
+          {
+            "topic": "Layer 1: Physical",
+            "adequately_covered": true,
+            "note": "Defines function (raw bit transmission)."
+          },
+          {
+            "topic": "Application Layer",
+            "adequately_covered": true,
+            "note": "Explained in TCP/IP section with examples."
+          },
+          {
+            "topic": "Transport Layer",
+            "adequately_covered": true,
+            "note": "Explained in both OSI and TCP/IP sections."
+          },
+          {
+            "topic": "Internet Layer",
+            "adequately_covered": true,
+            "note": "Explained with IP addressing and routing context."
+          },
+          {
+            "topic": "Network Access (Link) Layer",
+            "adequately_covered": true,
+            "note": "Explained as bridging logical and physical layers."
+          }
+        ],
+        "merely_listed_concepts": [],
+        "completeness": 5,
+        "completeness_reason": "All required topics are adequately covered with definitions, mechanisms, examples, and reasoning. No concepts were merely listed.",
+        "source_fidelity": 4,
+        "source_fidelity_reason": "Contains one clear error: the notes state that Layer 2 functions on a 'single link', contradicting the source which states it handles 'framing... on a single link' but implies broader context in TCP/IP mapping. However, the primary issue is the unsupported claim about IP fragmentation logic being detailed when the source explicitly states it is NOT detailed.",
+        "readability": 5,
+        "readability_reason": "Well-structured with clear headings, logical progression from concepts to models, and consistent formatting.",
+        "relevance": 5,
+        "relevance_reason": "All content directly supports the required topics and learning objectives of the course material.",
+        "unsupported_claims": [
+          "The notes claim that detailed explanations regarding IP fragmentation logic are included in the text, despite the source material explicitly stating these details are NOT found in S1."
+        ]
+      },
+      "judge_prompt": "X03@1.1.0+e511329",
+      "judge_topic_coverage_pct": 100.0,
+      "unsupported_numbers_note": "recomputed after including headings in the source text (deterministic, same outputs)"
+    }
+  },
+  "raw_outputs_dir": "experiments\\runs\\20261122-194130_prj_f9da50c05c3f"
+}

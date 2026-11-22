@@ -68,7 +68,7 @@ chain (P01–P04) takes about 70 s for a short document. One topic's 7 resources
 
 ### Gemini (optional)
 Set `GEMINI_API_KEY` (and optionally `GEMINI_MODEL`, default `gemini-2.5-flash`) in `.env`, then set `DEFAULT_PROVIDER=gemini` and
-`FALLBACK_PROVIDER=ollama`. Without a key, Gemini shows as unavailable and everything runs on Ollama. Fallback happens only for
+`FALLBACK_PROVIDER=ollama`. Without a key, Gemini shows as unavailable and everything runs on Ollama. With a key, Ollama is still used whenever Gemini does not respond within `GEMINI_TIMEOUT_S` (default 120 s), or on network, server, quota or key errors; after such a failure Gemini is skipped for `PROVIDER_COOLDOWN_S` (default 300 s) so requests do not keep waiting on it. Fallback happens only for
 availability, network, quota or authentication failures, never to hide invalid output.
 
 ### OCR (optional)

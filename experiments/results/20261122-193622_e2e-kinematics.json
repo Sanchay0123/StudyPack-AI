@@ -1,0 +1,211 @@
+{
+  "project_id": "prj_351c790351f8",
+  "project": "E2E Kinematics",
+  "subject": "Mechanics",
+  "timestamp": "20261122-193622",
+  "model": "qwen3.5:4b-q4_K_M",
+  "provider": "ollama",
+  "generation_context": 8192,
+  "judge_context": 16384,
+  "coverage_units": [
+    "Definition of Kinematics",
+    "Displacement as a Vector Quantity",
+    "The Four SUVAT Equations",
+    "Worked Example: Car Acceleration",
+    "Characteristics of Free Fall",
+    "Gradient on Displacement-Time Graphs",
+    "Gradient and Area on Velocity-Time Graphs"
+  ],
+  "results": {
+    "A": {
+      "words": 488,
+      "sections": 5,
+      "lexical_topic_coverage_pct": 100.0,
+      "units_not_covered": [],
+      "unsupported_numbers": [],
+      "seconds": 25.3,
+      "source_chunks_used": 5,
+      "source_chunks_total": 5,
+      "calls": 1,
+      "judge": {
+        "topic_coverage": [
+          {
+            "topic": "Definition of Kinematics",
+            "adequately_covered": true,
+            "note": "Correctly defined as motion without considering causes."
+          },
+          {
+            "topic": "Displacement as a Vector Quantity",
+            "adequately_covered": true,
+            "note": "Correctly identified as change in position and a vector measured in metres."
+          },
+          {
+            "topic": "The Four SUVAT Equations",
+            "adequately_covered": true,
+            "note": "All four equations are listed correctly with variable definitions."
+          },
+          {
+            "topic": "Worked Example: Car Acceleration",
+            "adequately_covered": true,
+            "note": "Problem setup, knowns, and calculations for acceleration and distance match the source exactly."
+          },
+          {
+            "topic": "Characteristics of Free Fall",
+            "adequately_covered": true,
+            "note": "Correctly identifies gravity alone, neglects air resistance, and provides the time formula."
+          },
+          {
+            "topic": "Gradient on Displacement-Time Graphs",
+            "adequately_covered": true,
+            "note": "Correctly states that gradient represents velocity."
+          },
+          {
+            "topic": "Gradient and Area on Velocity-Time Graphs",
+            "adequately_covered": true,
+            "note": "Correctly states gradient is acceleration and area is displacement."
+          }
+        ],
+        "completeness": 5,
+        "completeness_reason": "The notes explain concepts sufficiently to learn from, providing definitions, formulas, units, worked examples, and strategic advice for solving problems.",
+        "source_fidelity": 5,
+        "source_fidelity_reason": "All mathematical expressions, physical constants (g ≈ 9.81), sign conventions, and logical steps in the worked example are preserved exactly as stated in the source material without distortion or invention.",
+        "readability": 5,
+        "readability_reason": "The notes are exceptionally clear, well-organised using tables and bold text for emphasis, and easy to follow with a logical flow from definitions to applications.",
+        "relevance": 5,
+        "relevance_reason": "The content stays strictly on the material required by the course topic map, covering all specified topics without unnecessary digression.",
+        "unsupported_claims": []
+      },
+      "judge_topic_coverage_pct": 100.0
+    },
+    "B": {
+      "words": 709,
+      "sections": 7,
+      "lexical_topic_coverage_pct": 100.0,
+      "units_not_covered": [],
+      "unsupported_numbers": [],
+      "seconds": 36.8,
+      "attempts": 1,
+      "calls": 1,
+      "source_chunks_used": 5,
+      "source_chunks_total": 5,
+      "judge": {
+        "topic_coverage": [
+          {
+            "topic": "Definition of Kinematics",
+            "adequately_covered": true,
+            "note": "Correctly defined as describing motion without causes."
+          },
+          {
+            "topic": "Displacement as a Vector Quantity",
+            "adequately_covered": true,
+            "note": "Correctly identified as change in position and a vector measured in metres."
+          },
+          {
+            "topic": "The Four SUVAT Equations",
+            "adequately_covered": true,
+            "note": "All four equations are listed correctly with variable definitions."
+          },
+          {
+            "topic": "Worked Example: Car Acceleration",
+            "adequately_covered": true,
+            "note": "Matches the source example exactly with correct calculations."
+          },
+          {
+            "topic": "Characteristics of Free Fall",
+            "adequately_covered": true,
+            "note": "Correctly identifies gravity alone, neglects air resistance, and defines g."
+          },
+          {
+            "topic": "Gradient on Displacement-Time Graphs",
+            "adequately_covered": true,
+            "note": "Correctly states gradient gives velocity."
+          },
+          {
+            "topic": "Gradient and Area on Velocity-Time Graphs",
+            "adequately_covered": true,
+            "note": "Correctly states gradient gives acceleration and area gives displacement."
+          }
+        ],
+        "completeness": 5,
+        "completeness_reason": "Concepts are explained sufficiently to learn from, including definitions, derivations (e.g., time to fall), and application strategies.",
+        "source_fidelity": 5,
+        "source_fidelity_reason": "The notes preserve the source's meaning, notation, terminology, and specific examples without distortion or invention.",
+        "readability": 5,
+        "readability_reason": "The content is clear, well-organised with logical headings, and easy to follow.",
+        "relevance": 5,
+        "relevance_reason": "The notes stay strictly on the material provided in the source document without unnecessary digressions.",
+        "unsupported_claims": []
+      },
+      "judge_topic_coverage_pct": 100.0
+    },
+    "C": {
+      "words": 4775,
+      "sections": 47,
+      "lexical_topic_coverage_pct": 100.0,
+      "units_not_covered": [],
+      "unsupported_numbers": [
+        "3600",
+        "9.8"
+      ],
+      "topics_with_notes": 5,
+      "topics": 5,
+      "calls": 31,
+      "seconds": 709.1,
+      "evaluated_topics": 5,
+      "consistency_issues": 13,
+      "judge": {
+        "topic_coverage": [
+          {
+            "topic": "Definition of Kinematics",
+            "adequately_covered": true,
+            "note": "Correctly identifies kinematics as describing motion without causes."
+          },
+          {
+            "topic": "Displacement as a Vector Quantity",
+            "adequately_covered": true,
+            "note": "Correctly defines displacement as change in position and a vector measured in metres."
+          },
+          {
+            "topic": "The Four SUVAT Equations",
+            "adequately_covered": true,
+            "note": "Lists all four equations correctly with variable definitions."
+          },
+          {
+            "topic": "Worked Example: Car Acceleration",
+            "adequately_covered": true,
+            "note": "Reproduces the exact numerical values and steps of the source example."
+          },
+          {
+            "topic": "Characteristics of Free Fall",
+            "adequately_covered": true,
+            "note": "Correctly states conditions (gravity alone, air resistance neglected) and value of g."
+          },
+          {
+            "topic": "Gradient on Displacement-Time Graphs",
+            "adequately_covered": true,
+            "note": "Correctly identifies gradient as velocity."
+          },
+          {
+            "topic": "Gradient and Area on Velocity-Time Graphs",
+            "adequately_covered": true,
+            "note": "Correctly identifies gradient as acceleration and area as displacement."
+          }
+        ],
+        "completeness": 5,
+        "completeness_reason": "The notes provide comprehensive explanations for all required topics, including definitions, derivations, worked examples, and graphical interpretations.",
+        "source_fidelity": 4,
+        "source_fidelity_reason": "Most content is faithful to the source. However, the notes introduce supplementary background knowledge (e.g., standard value of g) and interpretive expansions (e.g., detailed sign convention analysis) that go beyond the specific text provided.",
+        "readability": 5,
+        "readability_reason": "The notes are exceptionally well-organized with clear headings, bullet points, and logical flow, making them easy to follow.",
+        "relevance": 5,
+        "relevance_reason": "All content is strictly relevant to the required topics and the subject matter of kinematics.",
+        "unsupported_claims": [
+          "The notes claim that 'speed is a scalar representing magnitude only' without explicitly citing the source for this specific definition, though it is standard knowledge.",
+          "The notes state 'In reality, engine performance and road friction may cause acceleration to vary,' which is an inference about real-world scenarios not present in the source material."
+        ]
+      },
+      "judge_topic_coverage_pct": 100.0
+    }
+  },
+  "raw_outputs_dir": "experiments\\runs\\20261122-193622_prj_351c790351f8"
+}
