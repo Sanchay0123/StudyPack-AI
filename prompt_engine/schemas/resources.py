@@ -15,6 +15,17 @@ PROVENANCE_HELP = ("'source' = stated in the source material; 'supplementary' = 
                    "added to aid understanding; 'inferred' = your interpretation or uncertain")
 
 
+# --------------------------------------------------------- P00 figure description
+class FigureDescription(BaseModel):
+    figure_kind: Literal["diagram", "flowchart", "chart_or_graph", "table_image", "equation_image", "photo",
+                         "screenshot", "map", "decorative", "other"]
+    description: str = Field(description="What the figure shows and how its parts relate, in 2-6 factual sentences")
+    key_elements: list[str] = Field(description="Labels, components, axes, steps or entities visible in the figure", max_length=15)
+    text_in_image: str = Field(description="Text that is legible in the image, transcribed exactly; empty if none")
+    educational_relevance: Literal["high", "medium", "low"] = Field(description="'low' for logos, decoration, stock photos")
+    uncertain_parts: str = Field(description="Parts you could not read or interpret with confidence; empty if none")
+
+
 # ----------------------------------------------------------------- P05 notes
 class NoteSection(BaseModel):
     heading: str

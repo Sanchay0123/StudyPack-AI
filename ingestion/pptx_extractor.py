@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import zipfile
 
+from ingestion.figures import FigureCollector
 from ingestion.types import ExtractionError, ExtractionResult, RawBlock
 
 
@@ -39,6 +40,7 @@ def extract_pptx(path: str) -> ExtractionResult:
         raise ExtractionError(f"Could not open PPTX: {exc}") from exc
 
     result = ExtractionResult()
+    figures = FigureCollector(path)
     title_types = {PP_PLACEHOLDER.TITLE, PP_PLACEHOLDER.CENTER_TITLE}
     for index, slide in enumerate(prs.slides, start=1):
         title_shape = slide.shapes.title
@@ -70,13 +72,21 @@ def extract_pptx(path: str) -> ExtractionResult:
                     alt = shape._element.xpath("./p:nvPicPr/p:cNvPr")[0].get("descr", "") or ""
                 except (IndexError, AttributeError):
                     pass
-                label = f"[Image on slide {index}" + (f": {alt}]" if alt else " - content not extracted]")
+                marker = None
+                try:
+                    marker = figures.add(shape.image.blob, slide=index, caption=alt)
+                except Exception:  # noqa: BLE001 - linked/unsupported pictures
+                    marker = None
+                if marker:
+                    label = marker + (f" (alt text: {alt})" if alt else "")
+                else:
+                    label = f"[Image on slide {index}" + (f": {alt}]" if alt else " - content not extracted]")
                 result.blocks.append(RawBlock(label, "image_ref", slide=index, confidence=0.3 if alt else 0.0, needs_review=not alt))
         if slide.has_notes_slide:
             notes = " ".join(slide.notes_slide.notes_text_frame.text.split()) if slide.notes_slide.notes_text_frame else ""
             if notes:
                 result.blocks.append(RawBlock(f"Speaker notes: {notes}", "slide_notes", slide=index))
-    result.metadata = {"slides": len(prs.slides)}
+    result.metadata = {"slides": len(prs.slides), "figures": figures.figures}
     if not any(b.content_type != "heading" for b in result.blocks):
         result.warnings.append("Slides contain titles only (no body text was found).")
     return result

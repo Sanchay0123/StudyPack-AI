@@ -44,8 +44,13 @@ def render() -> None:
             stat_card("GPU", g.name.replace("NVIDIA GeForce ", ""), f"{g.used_mb} / {g.total_mb} MiB VRAM in use")
         else:
             stat_card("GPU", "None detected", "CPU inference")
+    model_max = OllamaProvider(settings).max_context()
     with cols[1]:
-        stat_card("Context window", f"{settings.context_length:,} tokens", f"max output {settings.max_output_tokens:,}")
+        stat_card("Context window", f"{settings.context_length:,} tokens",
+                  f"max output {settings.max_output_tokens:,}" + (f" · model supports {model_max:,}" if model_max else ""))
+    if model_max and settings.context_length > model_max:
+        st.warning(f"DEFAULT_CONTEXT_LENGTH ({settings.context_length:,}) exceeds what {settings.ollama_model} supports "
+                   f"({model_max:,}); requests are clamped to {model_max:,}. Lower it in .env.")
     with cols[2]:
         stat_card("Concurrency", str(settings.max_concurrent_requests), "sequential generation")
 

@@ -17,6 +17,8 @@ class GenerationRequest:
     json_schema: dict[str, Any] | None = None
     # Context window to use for this request (None = provider default from settings).
     context_length: int | None = None
+    # PNG/JPEG bytes attached to the user message (vision-capable models only).
+    images: list[bytes] = field(default_factory=list)
     metadata: dict[str, Any] = field(default_factory=dict)
 
 

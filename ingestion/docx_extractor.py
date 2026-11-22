@@ -4,6 +4,7 @@ from __future__ import annotations
 import re
 import zipfile
 
+from ingestion.figures import FigureCollector
 from ingestion.types import ExtractionError, ExtractionResult, RawBlock
 
 MONO_HINTS = ("mono", "courier", "consolas", "menlo", "code")
@@ -38,6 +39,7 @@ def extract_docx(path: str) -> ExtractionResult:
         raise ExtractionError(f"Could not open DOCX: {exc}") from exc
 
     result = ExtractionResult()
+    figures = FigureCollector(path)
     image_count = 0
     body = document.element.body
     for child in body.iterchildren():
@@ -51,8 +53,19 @@ def extract_docx(path: str) -> ExtractionResult:
             continue
         para = Paragraph(child, document)
         if para._element.xpath(".//*[local-name()='drawing' or local-name()='pict']"):
-            image_count += 1
-            result.blocks.append(RawBlock("[Embedded image - content not extracted]", "image_ref", confidence=0.0, needs_review=True))
+            rel_ids = para._element.xpath(".//*[local-name()='blip']/@*[local-name()='embed']")
+            if not rel_ids:
+                image_count += 1
+                result.blocks.append(RawBlock("[Embedded image - content not extracted]", "image_ref", confidence=0.0, needs_review=True))
+            for rel_id in rel_ids:
+                image_count += 1
+                marker = None
+                try:
+                    marker = figures.add(document.part.related_parts[rel_id].blob)
+                except (KeyError, AttributeError):
+                    marker = None
+                result.blocks.append(RawBlock(marker or "[Embedded image - content not extracted]", "image_ref",
+                                              confidence=0.0, needs_review=True))
         text = para.text.strip()
         if not text:
             continue
@@ -88,6 +101,7 @@ def extract_docx(path: str) -> ExtractionResult:
             merged.append(b)
     result.blocks = merged
     result.metadata = {"paragraphs": len(document.paragraphs), "tables": len(document.tables), "images": image_count,
+                       "figures": figures.figures,
                        "title": document.core_properties.title or ""}
     if not result.blocks:
         result.warnings.append("No text found in the document.")

@@ -6,6 +6,7 @@ import re
 import statistics
 from collections import Counter
 
+from ingestion.figures import FigureCollector
 from ingestion.ocr_processor import ocr_available, ocr_image
 from ingestion.types import ExtractionError, ExtractionResult, RawBlock
 
@@ -76,6 +77,7 @@ def extract_pdf(path: str, use_ocr: bool = False) -> ExtractionResult:
         raise ExtractionError("The PDF is password-protected; remove the password and upload again.")
 
     result = ExtractionResult(metadata={"pages": doc.page_count, "title": (doc.metadata or {}).get("title") or ""})
+    figures = FigureCollector(path)
     pages_spans: list[list[tuple]] = []
     sizes: Counter = Counter()
     scanned_pages: list[int] = []
@@ -164,9 +166,17 @@ def extract_pdf(path: str, use_ocr: bool = False) -> ExtractionResult:
         except Exception:  # noqa: BLE001
             big_images = []
         if big_images and page_index not in scanned_pages:
-            result.blocks.append(RawBlock(
-                f"[Figure on page {page_no}: {len(big_images)} image(s) not extracted - see original document]",
-                "image_ref", page=page_no, confidence=0.0, needs_review=True))
+            for img in big_images:
+                marker = None
+                try:
+                    # Render the image's region of the page (handles masks, inline images and vector overlays).
+                    clip = fitz.Rect(img["bbox"]) & page.rect
+                    marker = figures.add(page.get_pixmap(clip=clip, dpi=150).tobytes("png"), page=page_no)
+                except Exception:  # noqa: BLE001
+                    marker = None
+                result.blocks.append(RawBlock(
+                    marker or f"[Figure on page {page_no}: image not extracted - see original document]",
+                    "image_ref", page=page_no, confidence=0.0, needs_review=True))
 
     if scanned_pages:
         result.metadata["scanned_pages"] = [p + 1 for p in scanned_pages]
@@ -181,6 +191,9 @@ def extract_pdf(path: str, use_ocr: bool = False) -> ExtractionResult:
             else:
                 msg += ". Re-run extraction with OCR enabled to read them."
             result.warnings.append(msg)
+    result.metadata["figures"] = figures.figures
+    if figures.skipped_small:
+        result.metadata["small_images_skipped"] = figures.skipped_small
     doc.close()
     return result
 

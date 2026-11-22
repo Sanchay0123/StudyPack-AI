@@ -4,6 +4,7 @@ from __future__ import annotations
 import streamlit as st
 
 from config.settings import get_settings
+from generation import jobs
 from ui.common import get_repo, hero, local_time, pill, provider_statuses, stat_card
 
 
@@ -55,6 +56,19 @@ def render() -> None:
                     if st.button("Open", key=f"open_{p.project_id}"):
                         st.session_state["project_id"] = p.project_id
                         st.switch_page(st.session_state["_pages"]["analysis"])
+                    with st.popover("Delete"):
+                        job = jobs.get_job(p.project_id)
+                        if job is not None and not job.finished:
+                            st.warning("A generation job is running for this pack. Stop it first.")
+                        else:
+                            st.markdown(f"Delete **{p.name}** permanently? Its documents, notes, resources, "
+                                        "evaluations and exports will be removed. This cannot be undone.")
+                            if st.button("Delete permanently", key=f"del_{p.project_id}", type="primary"):
+                                settings = get_settings()
+                                repo.delete_project(p.project_id, settings.uploads_dir, settings.generated_dir)
+                                if st.session_state.get("project_id") == p.project_id:
+                                    st.session_state.pop("project_id", None)
+                                st.rerun()
         if st.button("Create a new study pack", type="primary"):
             st.switch_page(st.session_state["_pages"]["create"])
     with right:

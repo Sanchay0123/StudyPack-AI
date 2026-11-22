@@ -69,11 +69,18 @@ class Repository:
         rows = self.conn.execute("SELECT * FROM projects ORDER BY updated_at DESC").fetchall()
         return [self._project(r) for r in rows]
 
-    def delete_project(self, project_id: str, uploads_dir: Path | None = None) -> None:
+    def delete_project(self, project_id: str, uploads_dir: Path | None = None, generated_dir: Path | None = None) -> None:
+        """Delete a study pack: DB rows (cascades to documents, chunks, topics, resources, tasks, evaluations),
+        its activity/stage-run log, uploaded files and exported files."""
         self.conn.execute("DELETE FROM projects WHERE project_id=?", (project_id,))
+        self.conn.execute("DELETE FROM activity WHERE project_id=?", (project_id,))
+        self.conn.execute("DELETE FROM stage_runs WHERE project_id=?", (project_id,))
         self.conn.commit()
-        if uploads_dir is not None:
-            shutil.rmtree(uploads_dir / project_id, ignore_errors=True)
+        for base in (uploads_dir, generated_dir):
+            if base is not None:
+                target = (base / project_id).resolve()
+                if base.resolve() in target.parents:  # never delete outside the data folders
+                    shutil.rmtree(target, ignore_errors=True)
 
     # --------------------------------------------------------------- documents
     def add_document(self, doc: Document) -> Document:
@@ -124,6 +131,11 @@ class Repository:
         self.conn.executemany("INSERT INTO chunks VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)", rows)
         self.conn.commit()
         return len(rows)
+
+    def update_chunk_content(self, chunk_id: str, content: str, needs_review: bool, confidence: float) -> None:
+        self.conn.execute("UPDATE chunks SET content=?, needs_review=?, extraction_confidence=? WHERE chunk_id=?",
+                          (content, int(needs_review), confidence, chunk_id))
+        self.conn.commit()
 
     def list_chunks(self, project_id: str) -> list[ContentChunk]:
         rows = self.conn.execute(

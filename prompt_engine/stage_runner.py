@@ -128,7 +128,7 @@ class StageRunner:
         return prompt_tokens
 
     def run(self, template_name: str, variables: dict[str, Any], semantic_check: SemanticCheck | None = None,
-            temperature: float | None = None) -> StageResult:
+            temperature: float | None = None, images: list[bytes] | None = None) -> StageResult:
         package = self.build(template_name, variables)
         if package.schema_model is None:
             raise ValueError(f"Template {template_name} has no schema; use run_text()")
@@ -147,6 +147,7 @@ class StageRunner:
                 attempts += 1
                 request = GenerationRequest(system=package.system, prompt=prompt, temperature=temperature if temperature is not None else tpl.temperature,
                                             max_tokens=max_output, json_schema=package.json_schema, context_length=self.settings.context_length,
+                                            images=list(images or []),
                                             metadata={"template": tpl.label, "attempt": attempts})
                 result = self.router.generate(request)
                 provider, model = result.provider, result.model

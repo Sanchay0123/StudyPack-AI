@@ -83,6 +83,27 @@ class OllamaProvider(BaseLLMProvider):
             info["error"] = "Ollama not reachable"
         return info
 
+    def max_context(self) -> int | None:
+        """The model's trained context length as reported by Ollama (/api/show), cached; None if unknown."""
+        if not hasattr(self, "_max_ctx"):
+            self._max_ctx = None
+            try:
+                resp = self.session.post(f"{self.base_url}/api/show", json={"model": self.model}, timeout=10)
+                if resp.ok:
+                    info = resp.json().get("model_info", {}) or {}
+                    values = [v for k, v in info.items() if k.endswith(".context_length") and isinstance(v, int)]
+                    self._max_ctx = values[0] if values else None
+            except (requests.exceptions.RequestException, ValueError):
+                pass
+        return self._max_ctx
+
+    def effective_context(self, requested: int) -> int:
+        limit = self.max_context()
+        if limit and requested > limit:
+            log.warning("Requested context %s exceeds %s's maximum %s; using %s", requested, self.model, limit, limit)
+            return limit
+        return requested
+
     def running_models(self) -> list[dict[str, Any]]:
         """Models loaded in memory, including VRAM usage (/api/ps)."""
         try:
@@ -105,13 +126,16 @@ class OllamaProvider(BaseLLMProvider):
             "keep_alive": self.settings.ollama_keep_alive,
             "options": {
                 "temperature": request.temperature,
-                "num_ctx": request.context_length or self.settings.context_length,
+                "num_ctx": self.effective_context(request.context_length or self.settings.context_length),
                 "num_predict": request.max_tokens,
             },
         }
         if request.json_schema is not None:
             # Ollama structured outputs: grammar-constrained decoding to the schema.
             payload["format"] = request.json_schema
+        if request.images:
+            import base64
+            payload["messages"][1]["images"] = [base64.b64encode(img).decode("ascii") for img in request.images]
 
         start = time.perf_counter()
         try:

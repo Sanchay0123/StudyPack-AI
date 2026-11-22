@@ -40,3 +40,19 @@ def test_markdown_renderers_include_provenance_and_answer_key():
     quiz = render_quiz({"questions": [{"question": "Q", "question_type": "mcq", "difficulty": "easy", "options": ["a", "b", "c"],
                                        "correct_answers": ["b"], "explanation": "because"}]})
     assert "B) b" in quiz and "Answer key" in quiz and quiz.index("Answer key") > quiz.index("B) b")
+
+
+def test_equations_render_as_images_with_safe_fallbacks():
+    out = inline(r"Use $v^2 = u^2 + 2as$ with $x_1$; it costs $5 and $10; bad $\begin{align}x\end{align}$ and _italic_")
+    assert out.count("<img ") == 2, "two renderable equations become images"
+    assert "costs $5 and $10" in out, "prices are not treated as maths"
+    assert r"\begin{align}" in out and ("SP-Mono" in out or "Courier" in out), "unsupported TeX falls back to monospace text"
+    assert "<i>italic</i>" in out and "<i>1</i>" not in out, "underscores inside maths are not italics"
+
+
+def test_pdf_with_equations_builds(tmp_path):
+    from reportlab.platypus import SimpleDocTemplate
+    flows = markdown_flowables("The equations are:\n\n1. $v = u + at$\n2. $s = ut + \\frac{1}{2}at^2$\n", styles())
+    SimpleDocTemplate(str(tmp_path / "eq.pdf")).build(flows)
+    import pymupdf
+    assert len(pymupdf.open(str(tmp_path / "eq.pdf"))[0].get_images()) == 2

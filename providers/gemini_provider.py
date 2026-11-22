@@ -104,8 +104,11 @@ class GeminiProvider(BaseLLMProvider):
             config_kwargs["response_json_schema"] = request.json_schema
         start = time.perf_counter()
         try:
+            contents: Any = request.prompt
+            if request.images:
+                contents = [types.Part.from_bytes(data=img, mime_type="image/png") for img in request.images] + [request.prompt]
             response = client.models.generate_content(
-                model=self.model, contents=request.prompt, config=types.GenerateContentConfig(**config_kwargs),
+                model=self.model, contents=contents, config=types.GenerateContentConfig(**config_kwargs),
             )
         except ProviderError:
             raise

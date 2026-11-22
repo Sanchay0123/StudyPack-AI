@@ -51,7 +51,8 @@ def render_note_section(section: dict[str, Any], sources: dict[str, Any], chunk_
     st.markdown(f"#### {section['heading']}")
     refs = source_refs(section.get("source_labels", []), sources)
     ref_text = " · ".join(html.escape(r) for r in refs)
-    st.markdown(f"{provenance_badge(prov)} <span class='sp-ref'>{ref_text}</span>", unsafe_allow_html=True)
+    edited = pill("edited by you", "muted") if section.get("edited_by_user") else ""
+    st.markdown(f"{provenance_badge(prov)}{edited} <span class='sp-ref'>{ref_text}</span>", unsafe_allow_html=True)
     content = section.get("content", "")
     if highlight:
         content = _highlight(content, highlight)

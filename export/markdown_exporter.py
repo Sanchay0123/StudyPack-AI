@@ -29,7 +29,8 @@ def render_notes(notes: dict[str, Any]) -> str:
     for s in notes.get("sections", []):
         out.append(f"#### {s['heading']}")
         refs = _refs(s.get("source_labels", []), sources)
-        out.append(f"*{PROV_TAG.get(s.get('provenance'), s.get('provenance'))}*" + (f" — Source: {refs}" if refs else ""))
+        edited = " · ✏ edited by student" if s.get("edited_by_user") else ""
+        out.append(f"*{PROV_TAG.get(s.get('provenance'), s.get('provenance'))}{edited}*" + (f" — Source: {refs}" if refs else ""))
         out.append("")
         out.append(s.get("content", ""))
         out.append("")

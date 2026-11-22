@@ -177,3 +177,57 @@ def test_topic_editor_rename_edit_delete_add():
     renamed = parents[0]
     assert renamed.learning_objectives == ["Explain X"] and renamed.source_chunk_ids
     assert [t.title for t in topics if t.parent_topic_id == renamed.topic_id] == ["Sub one", "Sub two"]
+
+
+def test_apply_edits_logic():
+    from ui.notes_editor import apply_edits
+    notes = {"overview": "o", "summary": "s", "_sources": {}, "_meta": {},
+             "sections": [{"heading": "A", "content": "a", "provenance": "source", "source_labels": ["S1"]},
+                          {"heading": "B", "content": "b", "provenance": "source", "source_labels": []}]}
+    updated, changes = apply_edits(notes, "o", "new summary", [
+        {"index": 0, "heading": "A", "content": "a fixed", "provenance": "supplementary", "delete": False},
+        {"index": 1, "heading": "B", "content": "b", "provenance": "source", "delete": True}])
+    assert [s["heading"] for s in updated["sections"]] == ["A"]
+    assert updated["sections"][0]["edited_by_user"] and updated["sections"][0]["source_labels"] == ["S1"]
+    assert updated["summary"] == "new summary" and notes["summary"] == "s"
+    assert changes == ["edited summary", "edited section: A", "deleted section: B"]
+    with pytest.raises(ValueError):
+        apply_edits(notes, "o", "s", [{"index": 0, "heading": "A", "content": "a", "provenance": "source", "delete": True},
+                                      {"index": 1, "heading": "B", "content": "b", "provenance": "source", "delete": True}])
+
+
+def test_edit_notes_through_ui_creates_new_version(project_id):
+    repo = Repository()
+    topic_id = [t for t in repo.list_topics(project_id) if t.parent_topic_id is None][0].topic_id
+    before = repo.get_resource(project_id, topic_id, "notes")
+    at = page("notes_page", project_id)
+    at.run()
+    at.toggle(key="notes_edit_mode").set_value(True)
+    at.run()
+    assert not at.exception, [e.value for e in at.exception]
+    at.text_area(key=f"c_{before.resource_id}_0").set_value("Corrected explanation written by the student.")
+    next(b for b in at.button if b.label == "Save as new version").click()
+    at.run()
+    assert not at.exception, [e.value for e in at.exception]
+    after = repo.get_resource(project_id, topic_id, "notes")
+    assert after.version == before.version + 1 and after.origin == "edited"
+    assert after.content["sections"][0]["content"] == "Corrected explanation written by the student."
+    assert after.content["sections"][0]["edited_by_user"]
+    from export.markdown_exporter import render_notes
+    assert "edited by student" in render_notes(after.content)
+
+
+def test_delete_project_through_dashboard():
+    from config.settings import get_settings as gs
+    repo = Repository()
+    doomed = repo.create_project(Project(name="Delete me"))
+    ingest_files(repo, doomed.project_id, [("t.md", DOC)], settings=gs())
+    upload_dir = gs().uploads_dir / doomed.project_id
+    assert upload_dir.exists()
+    at = page("dashboard", doomed.project_id)
+    at.run()
+    next(b for b in at.button if b.key == f"del_{doomed.project_id}").click()
+    at.run()
+    assert not at.exception, [e.value for e in at.exception]
+    assert repo.get_project(doomed.project_id) is None
+    assert repo.list_chunks(doomed.project_id) == [] and not upload_dir.exists()

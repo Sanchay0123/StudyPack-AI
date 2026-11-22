@@ -21,6 +21,7 @@ The prompt engine is the main technical contribution of StudyPack AI. It replace
 ## 2. The chain
 
 ```
+(optional) P00 figure_description (vision) ──► labelled figure descriptions in the source text
 P01 document_analysis ──► P02 topic_mapping ──► P03 learning_objectives ──► P04 teaching_strategy
                                                                                   │ (strategy JSON)
                     ┌─────────────────────────────────────────────────────────────┘
@@ -42,6 +43,7 @@ consistent with the notes); P11 sees the notes, the required subtopics and the e
 
 | Technique | Where |
 |---|---|
+| **Multimodal prompting** | P00 sends each extracted figure image with nearby text; text inside images is treated as untrusted data. |
 | **Role prompting** | Every template opens with a role: curriculum designer (P01), instructor (P02), educational designer (P03), master teacher (P04), professor (P05), tutor (P06), exam specialist (P07), learning scientist (P08b), visual designer (P09), assessment designer (P10), *independent reviewer who did not write the notes* (P11), revising author (P12). |
 | **Contextual prompting** | Subject, level, topic description, subtopics, objectives, prerequisites, strategy and labelled source material are injected per stage. |
 | **Zero-shot** | P01, P03, P05, P08a, P10, P11 rely on precise instructions only. |

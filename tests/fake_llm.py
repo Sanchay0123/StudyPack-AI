@@ -15,6 +15,9 @@ NOTE_SECTION = {"heading": "How Things Work", "kind": "concept", "provenance": "
                            "Star topology connects every device to a central switch, so one failed cable affects only one device."}
 
 CANNED = {
+    "figure_description": {"figure_kind": "flowchart", "description": "Three boxes labelled Input, Process and Output connected left to right.",
+                           "key_elements": ["Input", "Process", "Output"], "text_in_image": "Input Process Output",
+                           "educational_relevance": "high", "uncertain_parts": ""},
     "document_analysis": {"subject": "Computer Networks", "domain_category": "computer_science",
                           "subject_context": "Introductory networking.", "purpose": "lecture", "estimated_level": "first-year",
                           "major_concepts": ["topology"], "key_terms": [{"term": "LAN", "definition": "local network"}],

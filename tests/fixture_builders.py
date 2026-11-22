@@ -94,3 +94,62 @@ def make_text(path: Path) -> Path:
         "SUPPLY AND DEMAND\n\nThe law of demand states that quantity demanded falls as price rises.\n\n"
         "1.1 Market Equilibrium\nEquilibrium occurs where supply equals demand.\n", encoding="utf-8")
     return path
+
+
+def make_diagram_png(path: Path, size=(600, 300)) -> Path:
+    """A simple 'Input -> Process -> Output' diagram image (TEST FIXTURE)."""
+    from PIL import Image, ImageDraw
+
+    img = Image.new("RGB", size, "white")
+    draw = ImageDraw.Draw(img)
+    for i, label in enumerate(["Input", "Process", "Output"]):
+        x = 30 + i * 200
+        draw.rectangle([x, 110, x + 140, 190], outline="black", width=3)
+        draw.text((x + 40, 140), label, fill="black")
+        if i < 2:
+            draw.line([x + 140, 150, x + 200, 150], fill="black", width=3)
+    img.save(path)
+    return path
+
+
+def make_pdf_with_figure(path: Path) -> Path:
+    import pymupdf as fitz
+
+    png = make_diagram_png(path.with_name("diagram.png"))
+    icon = path.with_name("icon.png")
+    from PIL import Image
+    Image.new("RGB", (24, 24), "red").save(icon)
+    doc = fitz.open()
+    page = doc.new_page()
+    page.insert_text((72, 72), "Data Processing", fontsize=18, fontname="hebo")
+    page.insert_text((72, 100), "Every system transforms input into output.", fontsize=11)
+    page.insert_image(fitz.Rect(72, 120, 520, 345), filename=str(png))
+    page.insert_image(fitz.Rect(540, 20, 560, 40), filename=str(icon))  # decoration: must be skipped
+    doc.save(str(path))
+    return path
+
+
+def make_pptx_with_figure(path: Path) -> Path:
+    from pptx import Presentation
+    from pptx.util import Inches
+
+    png = make_diagram_png(path.with_name("diagram_pptx.png"))
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[5])
+    slide.shapes.title.text = "Pipeline"
+    slide.shapes.add_picture(str(png), Inches(1), Inches(2), Inches(6))
+    prs.save(str(path))
+    return path
+
+
+def make_docx_with_figure(path: Path) -> Path:
+    import docx
+    from docx.shared import Inches
+
+    png = make_diagram_png(path.with_name("diagram_docx.png"))
+    d = docx.Document()
+    d.add_heading("Pipeline", level=1)
+    d.add_paragraph("The pipeline has three stages.")
+    d.add_picture(str(png), width=Inches(5))
+    d.save(str(path))
+    return path

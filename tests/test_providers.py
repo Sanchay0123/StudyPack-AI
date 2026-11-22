@@ -222,3 +222,16 @@ def test_gemini_timeout_maps_to_fallback_eligible_error():
     with pytest.raises(ProviderTimeoutError) as info:
         provider.generate(GenerationRequest(system="s", prompt="p"))
     assert info.value.fallback_eligible
+
+
+def test_context_is_clamped_to_model_maximum():
+    class ShowThenChat(FakeSession):  # TEST FIXTURE: /api/show reports a 4K model
+        def post(self, url, json=None, timeout=None):
+            if url.endswith("/api/show"):
+                return FakeResponse(payload={"model_info": {"llama.context_length": 4096}})
+            return super().post(url, json=json, timeout=timeout)
+
+    session = ShowThenChat(post=FakeResponse(payload={"message": {"content": "ok"}, "done_reason": "stop"}))
+    provider = OllamaProvider(Settings(context_length=8192), session)
+    provider.generate(GenerationRequest(system="s", prompt="p"))
+    assert provider.max_context() == 4096 and session.last_json["options"]["num_ctx"] == 4096

@@ -63,6 +63,50 @@ def _documents(project) -> None:
             st.dataframe(df, hide_index=True, use_container_width=True)
 
 
+def _figures(project) -> None:
+    from analyzer.figure_describer import describe_figures, pending_figures
+    from prompt_engine.stage_runner import StageRunner
+
+    repo = get_repo()
+    docs = repo.list_documents(project.project_id)
+    figures = [(d, f) for d in docs for f in (d.metadata.get("figures") or [])]
+    if not figures:
+        return
+    pending = pending_figures(repo, project.project_id)
+    st.subheader("Figures")
+    st.caption(f"{len(figures)} figure(s) found in the documents; {len(figures) - len(pending)} described. Descriptions come from "
+               "the vision model, are labelled as such in the source text, and are flagged for review.")
+    if pending and st.button(f"Describe {len(pending)} figure(s) with the vision model",
+                             help="Run before (re-)running the analysis so the descriptions inform the topic map and notes."):
+        bar = st.progress(0.0)
+        runner = StageRunner(get_router(), get_settings(), recorder=repo.save_stage_run, project_id=project.project_id)
+        stats = describe_figures(repo, runner, project.project_id, project.subject or "",
+                                 progress=lambda m, f: bar.progress(min(f, 1.0), text=m))
+        st.success(f"Described {stats['described']} of {stats['total']} ({stats['low_relevance']} decorative).")
+        for err in stats["errors"]:
+            st.warning(err)
+    with st.expander("Show figures"):
+        for doc, fig in figures:
+            c1, c2 = st.columns([1, 2])
+            with c1:
+                try:
+                    st.image(fig["path"], use_container_width=True)
+                except Exception:  # noqa: BLE001 - file removed
+                    st.caption("(image file missing)")
+            with c2:
+                where = f"page {fig['page']}" if fig.get("page") else (f"slide {fig['slide']}" if fig.get("slide") else "")
+                st.markdown(f"**{fig['id']}** · {doc.filename} {where}")
+                d = fig.get("description")
+                if d:
+                    st.markdown(f"{pill(d['figure_kind'].replace('_', ' '), 'muted')}{pill('relevance ' + d['educational_relevance'], 'muted')}",
+                                unsafe_allow_html=True)
+                    st.write(d["description"])
+                    if d.get("text_in_image"):
+                        st.caption(f"Text in image: {d['text_in_image']}")
+                else:
+                    st.caption("Not described yet.")
+
+
 def _analysis_summary(project, stored) -> None:
     analysis = stored.get("analysis")
     if not analysis:
@@ -200,6 +244,7 @@ def render() -> None:
     hero(project.name, "Inspect the extraction, the detected subject and the topic hierarchy before generating.", "Document Analysis")
     repo = get_repo()
     _documents(project)
+    _figures(project)
     stored = repo.get_analysis(project.project_id)
     c1, c2 = st.columns([1, 3])
     with c1:

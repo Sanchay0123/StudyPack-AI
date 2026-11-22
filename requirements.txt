@@ -16,6 +16,7 @@ google-genai>=1.0     # Gemini (optional, needs GEMINI_API_KEY)
 
 # Export
 reportlab>=4.0
+matplotlib>=3.8   # renders $LaTeX$ equations as images in the PDF (mathtext, no LaTeX install)
 
 # Testing
 pytest>=8.0

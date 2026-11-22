@@ -82,16 +82,40 @@ def styles() -> dict[str, ParagraphStyle]:
     return s
 
 
-def inline(text: str) -> str:
-    """Escape text and convert simple Markdown inline syntax to ReportLab markup."""
+# $...$ / $$...$$ with pandoc's rule: no whitespace just inside the delimiters, and the closing $ not followed by a
+# digit, so prices such as "$5 and $10" are not treated as maths.
+MATH_RE = re.compile(r"\$\$(.+?)\$\$|\$(?!\s)([^$\n]+?)(?<!\s)\$(?!\d)")
+
+
+def math_markup(expr_escaped: str, font_size: float = 10.0) -> str:
+    """Rendered equation image if mathtext can draw it, else monospace text."""
+    from export.math_render import render_math
+
+    f = fonts()
+    rendered = render_math(html.unescape(expr_escaped), font_size)
+    if rendered is None:
+        return f'<font face="{f["mono"]}" color="#2F5D8A">{expr_escaped}</font>'
+    path, width, height = rendered
+    return f'<img src="{html.escape(path)}" width="{width:.1f}" height="{height:.1f}" valign="middle"/>'
+
+
+def inline(text: str, font_size: float = 10.0) -> str:
+    """Escape text and convert simple Markdown inline syntax (and $maths$) to ReportLab markup."""
     f = fonts()
     text = html.escape(text, quote=False)
-    text = re.sub(r"`([^`]+)`", lambda m: f'<font face="{f["mono"]}">{m.group(1)}</font>', text)
-    text = re.sub(r"\$\$?([^$]+)\$\$?", lambda m: f'<font face="{f["mono"]}" color="#2F5D8A">{m.group(1)}</font>', text)
+    protected: list[str] = []
+
+    def protect(markup: str) -> str:
+        protected.append(markup)
+        return f"\x00{len(protected) - 1}\x00"
+
+    # Code and maths first, as placeholders, so _ and * inside them are not read as italics/bold.
+    text = re.sub(r"`([^`]+)`", lambda m: protect(f'<font face="{f["mono"]}">{m.group(1)}</font>'), text)
+    text = MATH_RE.sub(lambda m: protect(math_markup(m.group(1) or m.group(2), font_size)), text)
     text = re.sub(r"\*\*([^*]+)\*\*", r"<b>\1</b>", text)
     text = re.sub(r"(?<![\w*])\*([^*\n]+)\*(?![\w*])", r"<i>\1</i>", text)
     text = re.sub(r"(?<![\w_])_([^_\n]+)_(?![\w_])", r"<i>\1</i>", text)
-    return text
+    return re.sub(r"\x00(\d+)\x00", lambda m: protected[int(m.group(1))], text)
 
 
 def _table(rows: list[list[str]], st, widths=None) -> Table:
@@ -205,7 +229,8 @@ class StudyPackDoc(BaseDocTemplate):
 def _provenance_line(section: dict[str, Any], sources: dict[str, Any], st) -> Paragraph:
     label, color = PROV_LABEL.get(section.get("provenance"), ("Unlabelled", "#6B7280"))
     refs = "; ".join(dict.fromkeys(sources[l]["ref"] for l in section.get("source_labels", []) if l in sources))
-    text = f'<font color="{color}"><b>■ {label}</b></font>' + (f" — {html.escape(refs)}" if refs else "")
+    edited = " <i>(edited by student)</i>" if section.get("edited_by_user") else ""
+    text = f'<font color="{color}"><b>■ {label}</b></font>{edited}' + (f" — {html.escape(refs)}" if refs else "")
     return Paragraph(text, st["small"])
 
 

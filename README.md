@@ -45,9 +45,9 @@ powershell -ExecutionPolicy Bypass -File scripts\start_app.ps1
 This starts the local Ollama server (if it isn't already running) and opens the app at http://localhost:8501.
 Stop Ollama and free GPU memory with `scripts\stop_ollama.ps1`. Link directly to a pack with `http://localhost:8501/notes?project=<project id>`.
 
-**Typical workflow:** Create Study Pack (upload files) → Document Analysis (check and edit the detected subject, topic map and strategy) →
+**Typical workflow:** Create Study Pack (upload files) → Document Analysis (check and edit the detected subject, topic map and strategy; optionally describe figures with the vision model) →
 Generation Center (runs as a background job: you can read finished notes meanwhile; progress is saved per item; failures can be retried) → Lecture Notes / Revision Center / Quiz Center →
-Quality Report (evaluate, then refine) → Export (Markdown or PDF).
+Quality Report (evaluate, then refine) → Export (Markdown or PDF). Notes can be edited by hand in the notes viewer (saved as a new version, marked "edited by you"); study packs can be deleted from the dashboard.
 
 Headless alternative (same database, so results open in the UI):
 ```powershell
@@ -119,10 +119,10 @@ tools/  data/  generated/  logs/   (runtime, git-ignored)
 ## 8. Known limitations
 - A 4B local model is fast enough on 6 GB VRAM but makes mistakes. That is why every output is validated, evaluated independently and labelled
   by provenance. Treat "inferred" content and flagged claims with care.
-- Equations are kept as text/LaTeX. They render in the app (KaTeX) but appear as monospace LaTeX in the PDF.
+- Equations: `$...$` LaTeX renders in the app (KaTeX) and as images in the PDF (matplotlib mathtext); LaTeX that mathtext cannot parse (e.g. `align`) stays as monospace text.
 - Diagrams: flowcharts, mindmaps and timelines are drawn in the PDF. Other Mermaid types (sequence, class...) are printed as source in the PDF
   but render in the app.
-- Images inside documents are not interpreted: they are marked as "[Figure ... not extracted]" for review.
+- Figures inside documents are saved and can be described by the vision model (Document Analysis → *Describe figures*). Descriptions are labelled as model-generated and flagged for review; tiny images (icons, logos) are skipped.
 - Background generation jobs live in the Streamlit server process: you can browse other pages or close the tab, but stopping the server stops the job. Completed items are always saved and the rest can be resumed.
 - The lexical grounding and coverage heuristics are indicators, not proof. The evidence-verified evaluator coverage is the primary metric.
 
