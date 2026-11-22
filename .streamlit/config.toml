@@ -1,0 +1,19 @@
+[theme]
+base = "light"
+primaryColor = "#2F5D8A"
+backgroundColor = "#FBFAF7"
+secondaryBackgroundColor = "#F1EFE9"
+textColor = "#1F2933"
+font = "sans serif"
+headingFont = "serif"
+borderColor = "#E2DED5"
+showWidgetBorder = true
+baseRadius = "0.5rem"
+
+[server]
+maxUploadSize = 200
+headless = true
+enableStaticServing = true
+
+[browser]
+gatherUsageStats = false

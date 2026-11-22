@@ -1,0 +1,2 @@
+Example of the expected style (format illustration only; do not reuse its content):
+{"question": "Compare primary and secondary sources, giving one example of each.", "question_type": "conceptual", "difficulty": "easy", "model_answer": "A primary source is created at the time of an event by a participant or witness (e.g. a diary); a secondary source analyses or interprets primary sources later (e.g. a textbook).", "key_points": ["definition of primary source", "definition of secondary source", "one valid example of each"], "source_labels": ["S2"]}
