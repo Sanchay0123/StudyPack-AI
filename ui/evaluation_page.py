@@ -9,6 +9,7 @@ from evaluation.evaluation_metrics import project_summary
 from prompt_engine.orchestrator import Orchestrator
 from ui.common import get_repo, get_router, hero, local_time, pill, require_project, stat_card
 from ui.components import empty_state
+from ui.job_panels import any_job_running, quality_panel, start_quality
 
 STATUS_KIND = {"passed": "ok", "needs_refinement": "warn", "incomplete": "bad"}
 
@@ -95,24 +96,38 @@ def render() -> None:
     if summary["missing_topics"]:
         st.warning("Topics without notes: " + ", ".join(summary["missing_topics"]))
 
-    if st.button("Evaluate all topics that have notes"):
-        bar = st.progress(0.0)
-        for i, p in enumerate(with_notes):
-            bar.progress(i / len(with_notes), text=f"Evaluating {p.title}...")
-            orch.evaluate(project.project_id, p.topic_id)
-        bar.progress(1.0, text="Done")
-        st.rerun()
+    st.subheader("Bulk actions")
+    current = {p.topic_id: orch.current_evaluation(project.project_id, p.topic_id) for p in with_notes}
+    needs = [p for p in with_notes if current[p.topic_id] and current[p.topic_id].evaluation_status == "needs_refinement"]
+    unevaluated = [p for p in with_notes if current[p.topic_id] is None]
+    to_refine = needs + unevaluated  # unevaluated/stale topics are evaluated first, then refined only if needed
+    busy = any_job_running()
+    st.caption(f"{len(needs)} topic(s) need refinement · {len(unevaluated)} not evaluated (or notes changed since the last "
+               f"evaluation) · {len(with_notes) - len(needs) - len(unevaluated)} passed or incomplete.")
+    b1, b2, _ = st.columns([1.3, 1.3, 2])
+    if b1.button(f"Refine all that need it ({len(to_refine)})", type="primary", disabled=bool(busy) or not to_refine,
+                 help=busy or "One targeted P12 pass per topic whose current evaluation is 'needs refinement'. Topics without a "
+                              "current evaluation are evaluated first and refined only if needed. Each refined version is "
+                              "re-evaluated and saved as a new notes version (older versions stay in the history)."):
+        if start_quality(project.project_id, [(p.topic_id, p.title) for p in to_refine], "refinement"):
+            st.rerun()
+    if b2.button(f"Evaluate all ({len(with_notes)})", disabled=bool(busy), help=busy or "Re-run P11 on every topic with notes."):
+        if start_quality(project.project_id, [(p.topic_id, p.title) for p in with_notes], "evaluation"):
+            st.rerun()
+    if busy:
+        st.caption(busy)
+    quality_panel(project.project_id)
 
     st.subheader("Per topic")
     topic_id = st.selectbox("Topic", [p.topic_id for p in with_notes], format_func=lambda i: next(p.title for p in with_notes if p.topic_id == i))
     evals = repo.list_evaluations(project.project_id, topic_id, latest_only=False)
     c1, c2, _ = st.columns([1, 1, 3])
-    if c1.button("Run evaluation (P11)", type="primary"):
+    if c1.button("Run evaluation (P11)", type="primary", disabled=bool(busy)):
         with st.spinner("Independent evaluation running..."):
             orch.evaluate(project.project_id, topic_id)
         st.rerun()
     can_refine = bool(evals) and evals[0].evaluation_status == "needs_refinement"
-    if c2.button("Refine notes (P12)", disabled=not can_refine,
+    if c2.button("Refine notes (P12)", disabled=not can_refine or bool(busy),
                  help="Applies targeted fixes for the latest findings, saves a new version and re-evaluates it."):
         with st.spinner("Refining and re-evaluating..."):
             try:

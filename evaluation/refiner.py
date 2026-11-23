@@ -10,7 +10,8 @@ from generation.notes_generator import notes_to_text
 from generation.topic_context import TopicContext
 from prompt_engine.context_manager import format_source, select_chunks_for_topic, source_budget
 from prompt_engine.schemas.evaluation import NotesRefinement
-from prompt_engine.stage_runner import StageResult, StageRunner
+from prompt_engine.stage_runner import StageError, StageResult, StageRunner
+from providers.exceptions import ContextOverflowError, ProviderError
 
 
 def _key(text: str) -> str:
@@ -84,7 +85,35 @@ def targeted_notes_view(notes: dict[str, Any], findings: list[str], max_chars: i
     return "\n".join(lines)
 
 
+FINDINGS_PER_PASS = 5
+
+
 def refine_notes(runner: StageRunner, ctx: TopicContext, notes: dict[str, Any], findings: list[str]) -> tuple[dict[str, Any], StageResult, list[str]]:
+    """Apply the findings in groups of FINDINGS_PER_PASS, each group as one P12 call on the notes updated by the
+    previous group. Small groups keep each prompt inside the context window (only the sections a group names are
+    sent in full) and give the small model a short, focused task. A failing group is skipped; if every group
+    fails, the last error is raised."""
+    groups = [findings[i:i + FINDINGS_PER_PASS] for i in range(0, len(findings), FINDINGS_PER_PASS)] or [[]]
+    current, last_result, applied_all, change_log, last_error = notes, None, [], [], None
+    for group in groups:
+        try:
+            current, result, applied = _refine_pass(runner, ctx, current, group)
+        except (StageError, ProviderError) as exc:
+            if isinstance(exc, ProviderError) and not isinstance(exc, ContextOverflowError):
+                raise  # provider down: stop rather than burn through the remaining groups
+            last_error = exc
+            applied_all.append(f"skipped {len(group)} finding(s): {exc.__class__.__name__}")
+            continue
+        last_result = result
+        applied_all.extend(applied)
+        change_log.extend(current.get("_meta", {}).get("change_log", []) or [])
+    if last_result is None:
+        raise last_error  # type: ignore[misc]
+    current["_meta"] = {**current.get("_meta", {}), "change_log": change_log, "applied": applied_all}
+    return current, last_result, applied_all
+
+
+def _refine_pass(runner: StageRunner, ctx: TopicContext, notes: dict[str, Any], findings: list[str]) -> tuple[dict[str, Any], StageResult, list[str]]:
     variables = {"subject": ctx.subject, "topic_title": ctx.topic.title,
                  "findings": "\n".join(f"{i + 1}. {f}" for i, f in enumerate(findings)),
                  "section_headings": "; ".join(s["heading"] for s in notes.get("sections", [])),
@@ -94,7 +123,7 @@ def refine_notes(runner: StageRunner, ctx: TopicContext, notes: dict[str, Any], 
     budget = source_budget(runner.settings.context_length, runner.max_output_for(probe), probe.system + probe.user)
     # Targeted context: if the full notes do not leave room for evidence, send only the sections the
     # findings name (other sections are listed by heading), then shorten those if still necessary.
-    for max_chars in (None, 1500, 700):
+    for max_chars in (None, 1500, 700, 300, 120):
         if budget >= 600:
             break
         variables["notes_text"] = targeted_notes_view(notes, findings, max_chars)

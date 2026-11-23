@@ -31,7 +31,7 @@ center with flashcards, quiz center with hidden answers and scoring, quality rep
 (TOC, page numbers, rendered flowcharts/mindmaps/timelines) · Ollama + Gemini providers with fallback · experiment runner · CLI pipeline.
 
 ## Tests executed
-- Offline suite: `pytest` → **128 passed** (most recent full run).
+- Offline suite: `pytest` → **140 passed** (most recent full run).
 - Live: `pytest -m live` → passed (real model round trip).
 - Live failure modes (real servers): missing model → `ModelNotFoundError` with pull command; unreachable server →
   `ProviderUnavailableError`; invalid Gemini key → real API 400 mapped to `ProviderAuthError` → served by Ollama fallback;
@@ -101,7 +101,24 @@ The TCP/IP refinement, which overflowed the context in pass 1, now fits.
 numbers that are absent from the source. The 4B LLM judge did **not** discriminate (it gave 62.5% coverage to a one-word output),
 so its rubric scores are reported but not used as evidence. A stronger judge (Gemini) and human ratings are pending.
 
+## Session 3: real multi-file course + bulk actions (verified)
+- Real course (14 DAA slide decks) exposed context overflows in P01/P03/P04 → self-calibrating chars-per-token estimate,
+  shrink-and-retry when the context window fills, fair per-document sampling, P02 1.2.0 (document-aware batches),
+  P03 non-fatal batches + fuzzy matching, P04 title cap, topic map persisted right after P02. Analysis now completes (948 s, 77 topics).
+- Analysis runs as a **background job** sharing the one-job lock (double clicks can no longer start competing runs),
+  with batch-level progress ("P02 Topic mapping: batch 6 of 13").
+- **Bulk refinement** (Quality Report → "Refine all that need it"): background job; for each topic, evaluates if there is no
+  current evaluation (none, or the notes changed since), then runs one P12 pass only if the status is "needs refinement";
+  the refined version is re-evaluated. "Evaluate all" is now a background job too; both can be stopped after the current topic.
+  Per-topic buttons are disabled while any job runs. Offline + UI tests: **140 passed**.
+- Bulk refinement on the DAA course failed with P12 ContextOverflowError on 51/52 topics (15 findings ≈ 4k chars naming most
+  sections of long notes). Fixed: P12 applies findings in groups of 5 (one call per group, on the notes updated by the
+  previous group; a failing group is skipped), shorter targeted-notes levels, and a general pre-flight in StageRunner
+  that shrinks the bulkiest input instead of failing. Dry run on all 75 real DAA topics: every prompt fits (worst 8,137/8,192).
+- Fixed: evaluations written within the same second were returned in arbitrary order (second-resolution timestamps) → rowid tiebreak.
+
 ## Known limitations / pending
+- Large courses yield too many fine-grained topics (77 for 14 decks); a per-lecture consolidation step is proposed, not built.
 - Gemini: needs a real key to verify generation (code path, error mapping and fallback verified).
 - Non-flowchart Mermaid types (sequence, class) print as source in the PDF; LaTeX beyond mathtext's subset stays as text.
 - Background jobs live in the Streamlit server process; stopping the server stops a job (completed items are kept, rest resumable).
@@ -109,7 +126,7 @@ so its rubric scores are reported but not used as evidence. A stronger judge (Ge
   verified where possible (evidence quotes) and otherwise shown as findings, not facts.
 
 - Experiment: the LLM judge (same 4B model) is not discriminating; human ratings are not collected yet (CSV templates provided).
-- Validation so far uses three short synthetic sample documents; real multi-file courses have not been tested.
+- Full generation + QA validated on three synthetic documents; on the real 14-deck course only the analysis has been verified so far.
 
 ## Next recommended action
 1. Configure `GEMINI_API_KEY` and verify Gemini generation; re-run `experiments/run_experiment.py` with Gemini as judge.

@@ -38,38 +38,61 @@ def make_section_check(valid: set[str]):
     return check
 
 
-def _batches(lines: list[str], budget_tokens: int) -> list[list[str]]:
+def _batches(lines: list[str], budget_tokens: int, doc_of_line: list[str] | None = None) -> list[list[str]]:
+    """Pack index lines into batches that fit the budget, breaking at document boundaries where possible
+    (a lecture is only split if it alone exceeds the budget)."""
+    doc_of_line = doc_of_line or [""] * len(lines)
+    groups: list[list[str]] = []
+    for line, doc in zip(lines, doc_of_line):
+        if groups and groups[-1][0][1] == doc:
+            groups[-1].append((line, doc))
+        else:
+            groups.append([(line, doc)])
     batches, current, used = [], [], 0
-    for line in lines:
-        cost = estimate_tokens(line) + 2
+    for group in groups:
+        cost = sum(estimate_tokens(l) + 2 for l, _ in group)
         if current and used + cost > budget_tokens:
             batches.append(current)
             current, used = [], 0
-        current.append(line)
-        used += cost
+        for line, _ in group:
+            line_cost = estimate_tokens(line) + 2
+            if current and used + line_cost > budget_tokens:  # a single document larger than the budget
+                batches.append(current)
+                current, used = [], 0
+            current.append(line)
+            used += line_cost
     if current:
         batches.append(current)
     return batches
 
 
 def run_topic_mapping(runner: StageRunner, sections: list[Section], subject: str, subject_context: str,
-                      project_id: str) -> tuple[list[Topic], list[str]]:
+                      project_id: str, on_batch=None) -> tuple[list[Topic], list[str]]:
+    """`on_batch(done, total)` is called before each batch so long runs can show progress."""
     warnings: list[str] = []
-    variables = {"subject": subject, "subject_context": subject_context, "section_index": ""}
+    variables = {"subject": subject, "subject_context": subject_context, "section_index": "", "batch_note": ""}
     probe = runner.build("topic_mapping", variables)
     budget = source_budget(runner.settings.context_length, runner.max_output_for(probe), probe.system + probe.user)
     lines = section_index_lines(sections)
     if sum(estimate_tokens(l) for l in lines) > budget:
         lines = section_index_lines(sections, opening_chars=70)
-    batches = _batches(lines, budget)
+    batches = _batches(lines, budget, [sec.document_name for sec in sections])
+    n_docs = len({sec.document_name for sec in sections})
     if len(batches) > 1:
         warnings.append(f"Material is large: topic mapping ran in {len(batches)} batches.")
 
     by_label = {s.label: s for s in sections}
     topics: list[Topic] = []
-    for batch in batches:
+    for number, batch in enumerate(batches, start=1):
+        if on_batch:
+            on_batch(number - 1, len(batches))
         valid = {line.split(" | ", 1)[0] for line in batch}
-        result = runner.run("topic_mapping", {**variables, "section_index": "\n".join(batch)},
+        note = ""
+        if len(batches) > 1:
+            note = (f"\nNOTE: this index is PART {number} of {len(batches)} of a larger course ({n_docs} document(s) in total). "
+                    "Map ONLY the sections listed here. Keep topics broad: about 1-4 topics per document/lecture in this part, "
+                    "with the detailed points as subtopics.")
+        result = runner.run("topic_mapping", {**variables, "section_index": "\n".join(batch), "batch_note": note},
                             semantic_check=make_section_check(valid))
         topic_map: TopicMap = result.output  # type: ignore[assignment]
         for item in topic_map.topics:
@@ -97,14 +120,31 @@ def run_topic_mapping(runner: StageRunner, sections: list[Section], subject: str
     return topics, warnings
 
 
+CONTINUATION_RE = re.compile(
+    r"\s*(?:[(\[]\s*)?(?:[-:–]\s*)?\b(?:continued|contd?\.?|cont\.|final|advanced|more examples|part\s*\d+|part\s+[ivx]+|"
+    r"\d+|[ivx]{1,4})\s*[)\]]?\s*$", re.I)
+
+
+def base_title(title: str) -> str:
+    """Normalised title without slide-deck continuation suffixes: 'X (Continued)', 'X - Part 2', 'X (Final)' -> 'x'."""
+    t = title.strip()
+    for _ in range(3):
+        stripped = CONTINUATION_RE.sub("", t).strip(" -:–")
+        if stripped == t or not stripped:
+            break
+        t = stripped
+    return re.sub(r"\W+", " ", t.lower()).strip()
+
+
 def _merge_duplicate_topics(topics: list[Topic]) -> list[Topic]:
-    """When batching produces the same top-level topic twice, merge them."""
+    """Merge top-level topics that are the same topic: duplicates across batches, and slide-deck continuations
+    ('Dijkstra Examples (Continued)', '... (Final)'). Sources and subtopics are combined; duplicate subtopics dropped."""
     seen: dict[str, Topic] = {}
     out: list[Topic] = []
     remap: dict[str, str] = {}
     for t in topics:
         if t.parent_topic_id is None:
-            key = re.sub(r"\W+", " ", t.title.lower()).strip()
+            key = base_title(t.title)
             if key in seen:
                 keep = seen[key]
                 keep.source_chunk_ids = list(dict.fromkeys(keep.source_chunk_ids + t.source_chunk_ids))
@@ -114,7 +154,16 @@ def _merge_duplicate_topics(topics: list[Topic]) -> list[Topic]:
         elif t.parent_topic_id in remap:
             t.parent_topic_id = remap[t.parent_topic_id]
         out.append(t)
-    return out
+    # Drop subtopics duplicated by a merge.
+    unique, seen_subs = [], set()
+    for t in out:
+        if t.parent_topic_id is not None:
+            key = (t.parent_topic_id, base_title(t.title))
+            if key in seen_subs:
+                continue
+            seen_subs.add(key)
+        unique.append(t)
+    return unique
 
 
 def attach_unassigned_sections(topics: list[Topic], sections: list[Section]) -> int:

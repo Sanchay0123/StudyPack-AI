@@ -6,10 +6,10 @@ import streamlit as st
 from config.settings import get_settings
 from ingestion.ocr_processor import ocr_available
 from ingestion.pipeline import ingest_files
-from prompt_engine.orchestrator import Orchestrator
+from ui.job_panels import analysis_panel, start_analysis
 from prompt_engine.prompt_router import RESOURCE_LABELS, RESOURCE_TYPES
 from storage.models import Project
-from ui.common import current_project, get_repo, get_router, hero, pill
+from ui.common import current_project, get_repo, hero, pill
 
 LEVELS = ["(detect automatically)", "High school", "First-year undergraduate", "Undergraduate", "Advanced undergraduate",
           "Postgraduate", "Professional"]
@@ -22,29 +22,6 @@ def show_reports(reports) -> None:
                     unsafe_allow_html=True)
         for w in r.warnings:
             st.caption(f"⚠ {w}")
-
-
-def run_analysis_ui(project_id: str) -> bool:
-    orch = Orchestrator(get_repo(), get_router(), get_settings())
-    with st.status("Analysing material (P01 → P04)...", expanded=True) as status:
-        bar = st.progress(0.0)
-
-        def progress(msg: str, frac: float):
-            status.update(label=msg)
-            st.write(msg)
-            bar.progress(min(max(frac, 0.0), 1.0))
-
-        outcome = orch.run_analysis(project_id, progress=progress)
-        if outcome.ok:
-            status.update(label="Analysis complete", state="complete")
-            for w in outcome.warnings:
-                st.warning(w)
-        else:
-            status.update(label="Analysis failed", state="error")
-            st.error(outcome.error)
-            if outcome.stages_completed:
-                st.caption(f"Completed stages were saved: {', '.join(outcome.stages_completed)}. You can retry from Document Analysis.")
-    return outcome.ok
 
 
 def render() -> None:
@@ -87,9 +64,10 @@ def render() -> None:
             st.error("No document could be extracted. Fix the problems above and add documents on the Document Analysis page.")
             st.stop()
         if analyse_now:
-            if run_analysis_ui(project.project_id):
-                st.success("Done. Review and adjust the topic map before generating.")
-                st.page_link(st.session_state["_pages"]["analysis"], label="Open Document Analysis →", icon=":material/account_tree:")
+            if start_analysis(project.project_id):
+                st.success("Analysis started in the background (P01 → P04). Follow its progress on the Document Analysis page.")
+                analysis_panel(project.project_id)
+            st.page_link(st.session_state["_pages"]["analysis"], label="Open Document Analysis →", icon=":material/account_tree:")
         else:
             st.page_link(st.session_state["_pages"]["analysis"], label="Continue to Document Analysis →", icon=":material/account_tree:")
 

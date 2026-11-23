@@ -1,7 +1,7 @@
 ---
 id: P02
 name: topic_mapping
-version: 1.1.0
+version: 1.2.0
 schema: TopicMap
 techniques: role, contextual, structured-output, prompt-chaining
 temperature: 0.2
@@ -14,7 +14,7 @@ ROLE: You are a subject-matter instructor organising course material into a clea
 {{> global_rules}}
 
 ## USER
-TASK: Build the topic and subtopic hierarchy for this study material. Every topic and subtopic must be traceable to the source sections listed below.
+TASK: Build the topic and subtopic hierarchy for this study material. Every topic and subtopic must be traceable to the source sections listed below.{{batch_note}}
 
 CONTEXT (from the previous analysis stage):
 - Subject: {{subject}}

@@ -231,3 +231,58 @@ def test_delete_project_through_dashboard():
     assert not at.exception, [e.value for e in at.exception]
     assert repo.get_project(doomed.project_id) is None
     assert repo.list_chunks(doomed.project_id) == [] and not upload_dir.exists()
+
+
+def test_analysis_button_starts_background_job_and_page_shows_progress():
+    import time
+    from generation import jobs
+    repo = Repository()
+    project = repo.create_project(Project(name="Analysis via UI"))
+    ingest_files(repo, project.project_id, [("t.md", DOC)], settings=get_settings())
+    at = page("analysis_page", project.project_id)
+    at.session_state["_router_ollama"] = ProviderRouter(FakeLLM())
+    at.session_state["provider_choice"] = "ollama"
+    at.run()
+    next(b for b in at.button if b.label == "Run analysis").click()
+    at.run()
+    assert not at.exception, [e.value for e in at.exception]
+    job = jobs.get_job(project.project_id)
+    assert job is not None and job.kind == "analysis"
+    deadline = time.time() + 30
+    while not job.finished and time.time() < deadline:
+        time.sleep(0.1)
+    assert job.status == "finished", job.error
+    at.run()
+    assert not at.exception, [e.value for e in at.exception]
+    assert repo.get_analysis(project.project_id).get("analysis")
+    assert [t.title for t in repo.list_topics(project.project_id) if t.parent_topic_id is None] == ["LAN Topologies"]
+
+
+def test_bulk_refine_button_runs_background_job():
+    import time
+    from generation import jobs
+    repo = Repository()
+    project = repo.create_project(Project(name="Bulk refine via UI"))
+    ingest_files(repo, project.project_id, [("t.md", DOC)], settings=get_settings())
+    orch = Orchestrator(repo, ProviderRouter(FakeLLM()), get_settings())
+    assert orch.run_analysis(project.project_id).ok
+    orch.run_plan(project.project_id, orch.plan(project.project_id, ["notes"]))
+    topic_id = repo.list_topics(project.project_id)[0].topic_id
+    q = page("evaluation_page", project.project_id)
+    q.session_state["_router_ollama"] = ProviderRouter(FakeLLM())
+    q.session_state["provider_choice"] = "ollama"
+    q.run()
+    btn = next(b for b in q.button if b.label.startswith("Refine all that need it"))
+    assert btn.label == "Refine all that need it (1)", "unevaluated topic counts as a candidate"
+    btn.click()
+    q.run()
+    assert not q.exception, [e.value for e in q.exception]
+    job = jobs.get_job(project.project_id)
+    assert job is not None and job.kind == "refinement"
+    deadline = time.time() + 30
+    while not job.finished and time.time() < deadline:
+        time.sleep(0.1)
+    assert job.status == "finished" and job.done == 1, (job.error, job.lines)
+    assert repo.get_resource(project.project_id, topic_id, "notes").origin == "refined"
+    q.run()
+    assert not q.exception, [e.value for e in q.exception]

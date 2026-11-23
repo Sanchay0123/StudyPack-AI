@@ -86,7 +86,7 @@ def test_format_source_respects_budget_and_labels():
 
 def test_select_chunks_keeps_document_order_and_prefers_relevant():
     chunks = [chunk(0, "history of rome " * 50), chunk(1, "bus topology cable " * 50), chunk(2, "star topology switch " * 50)]
-    picked, dropped = select_chunks_for_topic(["c0", "c1", "c2"], chunks, 700, "bus star topology")
+    picked, dropped = select_chunks_for_topic(["c0", "c1", "c2"], chunks, 850, "bus star topology")
     assert dropped == 1 and [c.chunk_id for c in picked] == ["c1", "c2"]
 
 

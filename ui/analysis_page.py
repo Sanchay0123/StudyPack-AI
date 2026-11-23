@@ -12,7 +12,7 @@ from prompt_engine.orchestrator import Orchestrator
 from prompt_engine.schemas.analysis import NoteSectionKind
 from storage.models import Topic
 from ui.common import get_repo, get_router, hero, pill, require_project, stat_card
-from ui.upload_page import run_analysis_ui
+from ui.job_panels import analysis_panel, analysis_running, busy_elsewhere, start_analysis
 
 SECTION_KINDS = list(NoteSectionKind.__args__)  # type: ignore[attr-defined]
 STATUS_KIND = {"extracted": "ok", "needs_ocr": "warn", "failed": "bad", "uploaded": "muted"}
@@ -246,14 +246,21 @@ def render() -> None:
     _documents(project)
     _figures(project)
     stored = repo.get_analysis(project.project_id)
+    running = analysis_running(project.project_id)
+    blocked = busy_elsewhere(project.project_id)
     c1, c2 = st.columns([1, 3])
     with c1:
         label = "Re-run analysis" if stored.get("analysis") else "Run analysis"
-        run = st.button(label, type="primary" if not stored.get("analysis") else "secondary",
-                        help="Runs P01-P04. Re-running replaces the topic map (and the resources of topics that no longer exist).")
-    if run:
-        if run_analysis_ui(project.project_id):
-            st.rerun()
+        run = st.button(label, type="primary" if not stored.get("analysis") else "secondary", disabled=running or bool(blocked),
+                        help="Runs P01-P04 in the background. Re-running replaces the topic map (and the resources of "
+                             "topics that no longer exist).")
+    if blocked:
+        st.info(blocked)
+    if run and start_analysis(project.project_id):
+        st.rerun()
+    analysis_panel(project.project_id)
+    if running:
+        return  # don't show (or allow editing of) a topic map that is about to be replaced
     if not stored.get("analysis"):
         st.info("The material has not been analysed yet.")
         return

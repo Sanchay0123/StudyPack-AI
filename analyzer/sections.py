@@ -78,14 +78,39 @@ def section_index_lines(sections: list[Section], opening_chars: int = 160) -> li
     return lines
 
 
+def spread(items: list, k: int) -> list:
+    """k items evenly spaced across the list (keeps first and last), in original order."""
+    if k >= len(items):
+        return list(items)
+    if k <= 1:
+        return items[:1]
+    step = (len(items) - 1) / (k - 1)
+    return [items[round(i * step)] for i in range(k)]
+
+
 def outline_text(sections: list[Section], max_lines: int = 120) -> str:
-    seen, lines = set(), []
+    """Heading outline grouped by document. When it is too long, every document keeps a fair share of
+    evenly sampled headings, so later documents of a multi-file pack are not cut off."""
+    per_doc: dict[str, list[str]] = {}
+    seen: set[tuple[str, str]] = set()
     for s in sections:
-        if s.heading in seen:
+        if (s.document_name, s.heading) in seen:
             continue
-        seen.add(s.heading)
+        seen.add((s.document_name, s.heading))
         depth = s.heading.count(" > ")
-        lines.append("  " * depth + "- " + s.heading.split(" > ")[-1] + f"  ({s.location})")
-    if len(lines) > max_lines:
-        lines = lines[:max_lines] + [f"... ({len(lines) - max_lines} more headings)"]
-    return "\n".join(lines) if lines else "(no headings detected)"
+        per_doc.setdefault(s.document_name, []).append("  " * (depth + 1) + "- " + s.heading.split(" > ")[-1] + f"  ({s.location})")
+    if not per_doc:
+        return "(no headings detected)"
+    total = sum(len(v) for v in per_doc.values())
+    multi = len(per_doc) > 1
+    budget = max_lines - (len(per_doc) if multi else 0)
+    lines: list[str] = []
+    for doc, heads in per_doc.items():
+        quota = len(heads) if total <= budget else max(2, budget * len(heads) // total)
+        chosen = spread(heads, quota)
+        if multi:
+            lines.append(f"[{doc}]" + (f"  ({len(heads)} headings, {len(chosen)} shown)" if len(chosen) < len(heads) else ""))
+        lines += chosen if multi else [h[2:] for h in chosen]
+        if not multi and len(chosen) < len(heads):
+            lines.append(f"... ({len(heads) - len(chosen)} more headings, evenly sampled above)")
+    return "\n".join(lines)

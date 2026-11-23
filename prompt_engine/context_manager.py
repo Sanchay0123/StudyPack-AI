@@ -13,7 +13,28 @@ from dataclasses import dataclass, field
 from prompt_engine.prompt_builder import SOURCE_CLOSE, SOURCE_OPEN, neutralize_source_text
 from storage.models import ContentChunk
 
-CHARS_PER_TOKEN = 3.3  # conservative for mixed English/code/maths with Qwen tokenizers
+# Characters per token. Prose tokenises at ~3.5-4, but slides with code, symbols and short lines measured 2.69
+# with Qwen3.5, so the default is conservative and is lowered further (never raised) from the real prompt token
+# counts the provider reports after each call - see calibrate().
+DEFAULT_CHARS_PER_TOKEN = 2.6
+CHARS_PER_TOKEN = DEFAULT_CHARS_PER_TOKEN
+MIN_CHARS_PER_TOKEN = 1.8
+
+
+def chars_per_token() -> float:
+    return CHARS_PER_TOKEN
+
+
+def calibrate(prompt_chars: int, prompt_tokens: int | None) -> float:
+    """Learn from an actual call: if the material tokenised denser than assumed, tighten the estimate (5% margin)."""
+    global CHARS_PER_TOKEN
+    if prompt_tokens and prompt_tokens > 200 and prompt_chars > 0:
+        observed = prompt_chars / prompt_tokens
+        if observed * 0.95 < CHARS_PER_TOKEN:
+            CHARS_PER_TOKEN = max(MIN_CHARS_PER_TOKEN, round(observed * 0.95, 3))
+    return CHARS_PER_TOKEN
+
+
 STOPWORDS = set("""a an the and or of to in on for with by from as is are was were be been being this that these those it its
 into at which who whom whose what when where why how not no can may might will would should could than then there their
 they them he she his her we our you your i also such each other more most some any all both between about over under""".split())

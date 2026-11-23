@@ -308,7 +308,7 @@ class Repository:
         return ev
 
     def list_evaluations(self, project_id: str, topic_id: str | None = None, latest_only: bool = True) -> list[EvaluationRecord]:
-        rows = self.conn.execute("SELECT * FROM evaluations WHERE project_id=? ORDER BY created_at DESC", (project_id,)).fetchall()
+        rows = self.conn.execute("SELECT * FROM evaluations WHERE project_id=? ORDER BY created_at DESC, rowid DESC", (project_id,)).fetchall()
         records = [EvaluationRecord(evaluation_id=r["evaluation_id"], project_id=r["project_id"], topic_id=r["topic_id"],
                                     resource_id=r["resource_id"], coverage_score=r["coverage_score"],
                                     report=json.loads(r["report_json"]), evaluation_status=r["evaluation_status"],
@@ -333,7 +333,7 @@ class Repository:
         self.conn.commit()
 
     def list_stage_runs(self, project_id: str, limit: int = 200) -> list[StageRun]:
-        rows = self.conn.execute("SELECT * FROM stage_runs WHERE project_id=? ORDER BY created_at DESC LIMIT ?",
+        rows = self.conn.execute("SELECT * FROM stage_runs WHERE project_id=? ORDER BY created_at DESC, rowid DESC LIMIT ?",
                                  (project_id, limit)).fetchall()
         return [StageRun(**{**dict(r), "success": bool(r["success"])}) for r in rows]
 

@@ -85,17 +85,26 @@ class Orchestrator:
             outcome.stages_completed.append("P01")
 
             progress("P02 Topic mapping: building the topic hierarchy...", 0.3)
-            topics, warnings = run_topic_mapping(runner, sections, subject, analysis["subject_context"], project_id)
+            topics, warnings = run_topic_mapping(
+                runner, sections, subject, analysis["subject_context"], project_id,
+                on_batch=lambda done, total: progress(
+                    f"P02 Topic mapping: batch {done + 1} of {total} (about a minute each on local hardware)...",
+                    0.3 + 0.25 * done / max(total, 1)))
             outcome.warnings.extend(warnings)
+            # Persist the topic map immediately: a later stage failing must not throw this work away.
+            self.repo.replace_topics(project_id, topics)
             outcome.stages_completed.append("P02")
 
             progress("P03 Learning objectives...", 0.55)
-            _, unmatched = run_learning_objectives(runner, topics, subject, project.academic_level or analysis["estimated_level"],
-                                                   analysis["major_concepts"])
+            _, unmatched = run_learning_objectives(
+                runner, topics, subject, project.academic_level or analysis["estimated_level"], analysis["major_concepts"],
+                on_batch=lambda done, total: progress(f"P03 Learning objectives: batch {done + 1} of {total}...",
+                                                      0.55 + 0.25 * done / max(total, 1)))
             if unmatched:
-                outcome.warnings.append(f"No objectives were produced for: {', '.join(unmatched)} (you can add them manually).")
+                outcome.warnings.append(f"No objectives were produced for {len(unmatched)} topic(s): {', '.join(unmatched[:8])}"
+                                        f"{' ...' if len(unmatched) > 8 else ''} (you can add them in the topic editor).")
             outcome.stages_completed.append("P03")
-            self.repo.replace_topics(project_id, topics)
+            self.repo.replace_topics_partial(topics)
 
             progress("P04 Teaching strategy selection...", 0.8)
             p04 = run_teaching_strategy(runner, topics, subject, analysis["domain_category"],
@@ -218,3 +227,33 @@ class Orchestrator:
                                                             "findings_addressed": findings})
         self.repo.log_activity(project_id, f"Refined notes for '{ctx.topic.title}' ({len(applied)} change(s))")
         return before, after, applied
+
+    def current_evaluation(self, project_id: str, topic_id: str) -> EvaluationRecord | None:
+        """Latest evaluation, or None if there is none or it was made for an older version of the notes."""
+        notes = self.repo.get_resource(project_id, topic_id, "notes")
+        evals = self.repo.list_evaluations(project_id, topic_id)
+        if notes is None or not evals or evals[0].report.get("notes_version") != notes.version:
+            return None
+        return evals[0]
+
+    def refine_if_needed(self, project_id: str, topic_id: str) -> TaskOutcome:
+        """Bulk-refinement step for one topic: evaluate if there is no current evaluation, then run one P12 pass
+        only when the evaluation says the notes need refinement (P12 re-evaluates the refined version)."""
+        topic = self.repo.get_topic(topic_id)
+        title = topic.title if topic else topic_id
+        if self.repo.get_resource(project_id, topic_id, "notes") is None:
+            return TaskOutcome(topic_id, title, "notes", "skipped", "no lecture notes yet")
+        try:
+            latest = self.current_evaluation(project_id, topic_id) or self.evaluate(project_id, topic_id)
+            if latest.evaluation_status != "needs_refinement":
+                return TaskOutcome(topic_id, title, "notes", "skipped", f"no refinement needed ({latest.evaluation_status})")
+            before, after, applied = self.refine(project_id, topic_id)
+        except (StageError, ProviderError, ValueError) as exc:
+            log.warning("Bulk refinement failed for %s: %s", title, exc)
+            return TaskOutcome(topic_id, title, "notes", "failed", f"{exc.__class__.__name__}: {exc}"[:300])
+
+        def pct(v):
+            return f"{v:.0f}%" if v is not None else "n/a"
+        return TaskOutcome(topic_id, title, "notes", "done",
+                           f"{len(applied)} change(s), coverage {pct(before.coverage_score)} → {pct(after.coverage_score)}, "
+                           f"now {after.evaluation_status.replace('_', ' ')}")

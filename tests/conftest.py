@@ -12,3 +12,15 @@ os.environ.setdefault("GENERATED_DIR", str(_TMP / "generated"))
 os.environ.setdefault("LOGS_DIR", str(_TMP / "logs"))
 
 FIXTURES = Path(__file__).parent / "fixtures"
+
+
+import pytest  # noqa: E402
+
+
+@pytest.fixture(autouse=True)
+def _reset_token_calibration():
+    """The chars/token estimate self-calibrates process-wide; isolate tests from each other."""
+    import prompt_engine.context_manager as cm
+    cm.CHARS_PER_TOKEN = cm.DEFAULT_CHARS_PER_TOKEN
+    yield
+    cm.CHARS_PER_TOKEN = cm.DEFAULT_CHARS_PER_TOKEN

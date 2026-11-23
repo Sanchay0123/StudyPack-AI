@@ -53,6 +53,8 @@ def _start(project_id: str, plan) -> None:
 @st.fragment(run_every=3)
 def _job_panel(project_id: str, parents) -> None:
     job = jobs.get_job(project_id)
+    if job is not None and job.kind != "generation":
+        return
     if job is None:
         return
     elapsed = time.time() - job.started
@@ -94,7 +96,8 @@ def render() -> None:
     active = jobs.active_job()
     busy = active is not None and not active.finished
     st.subheader("Status")
-    if jobs.get_job(project.project_id):
+    gen_job = jobs.get_job(project.project_id)
+    if gen_job is not None and gen_job.kind == "generation":
         _job_panel(project.project_id, parents)
     else:
         st.dataframe(_matrix(project.project_id, parents), hide_index=True, use_container_width=True)

@@ -8,7 +8,7 @@ from evaluation.coverage_checker import compute_coverage, coverage_to_dicts
 from evaluation.grounding_checker import check_grounding
 from generation.notes_generator import notes_to_text
 from generation.topic_context import TopicContext
-from prompt_engine.context_manager import format_source, select_chunks_for_topic, source_budget
+from prompt_engine.context_manager import chars_per_token, format_source, select_chunks_for_topic, source_budget
 from prompt_engine.stage_runner import StageError, StageRunner
 from providers.exceptions import ProviderError
 
@@ -37,7 +37,7 @@ def evaluate_topic(runner: StageRunner, ctx: TopicContext, notes: dict[str, Any]
         if budget < 600:
             # Long notes: keep provenance tags but cut the notes view so ~600 tokens remain for source evidence.
             # The cut is recorded so the report does not claim the full notes were reviewed.
-            excess_chars = int((600 - budget) * 3.3) + 200
+            excess_chars = int((600 - budget) * chars_per_token()) + 200
             full = variables["notes_text"]
             variables["notes_text"] = full[: max(2000, len(full) - excess_chars)] + "\n[... notes truncated for the evaluator ...]"
             report["evaluated_notes_fraction"] = round(len(variables["notes_text"]) / len(full), 2)

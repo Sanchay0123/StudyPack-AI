@@ -18,7 +18,7 @@ from pydantic import BaseModel, ValidationError
 
 from config.logging_config import get_logger
 from config.settings import Settings, get_settings
-from prompt_engine.context_manager import estimate_tokens
+from prompt_engine.context_manager import calibrate, chars_per_token, estimate_tokens
 from prompt_engine.prompt_builder import PromptPackage, build_prompt
 from prompt_engine.template_loader import get_template
 from providers.base import GenerationRequest
@@ -91,6 +91,43 @@ def parse_and_validate(text: str, model: type[BaseModel], semantic_check: Semant
     return obj, []
 
 
+SOURCE_BLOCK_RE = re.compile(r"\n(?=\[S\d+\] \()")
+SHRINKABLE = ("source", "outline", "section_index", "notes_text", "notes_digest")
+
+
+def shrink_variables(variables: dict[str, Any], excess_tokens: int) -> tuple[dict[str, Any] | None, str]:
+    """Free roughly `excess_tokens` from the bulkiest shrinkable variable.
+
+    Labelled source material loses whole trailing [S#] blocks (the remaining labels stay valid); other text
+    is cut at a line boundary. Returns (new variables, note) or (None, reason) if nothing can be shrunk.
+    """
+    need_chars = int(excess_tokens * chars_per_token()) + 200
+    candidates = [k for k in SHRINKABLE if isinstance(variables.get(k), str) and len(variables[k]) > 800]
+    if not candidates:
+        return None, "nothing left to shrink"
+    key = max(candidates, key=lambda k: len(variables[k]))
+    text = variables[key]
+    if key == "source" and "[S" in text:
+        head, _, tail = text.partition("\n")  # "<source_material>" line
+        blocks = SOURCE_BLOCK_RE.split("\n" + tail)
+        blocks = [b for b in blocks if b.strip()]
+        closing = "</source_material>"
+        removed = 0
+        while len(blocks) > 1 and removed < need_chars:
+            removed += len(blocks.pop())
+        if removed == 0:
+            return None, "source cannot be shrunk further"
+        new = head + "\n" + "\n".join(b.replace(closing, "").rstrip() for b in blocks) + "\n" + closing
+        note = f"(dropped trailing source blocks, ~{removed} chars)"
+    else:
+        keep = max(400, len(text) - need_chars)
+        if keep >= len(text):
+            return None, f"{key} cannot be shrunk further"
+        new = text[:keep].rsplit("\n", 1)[0] + "\n[... shortened to fit the context window ...]"
+        note = f"(shortened {key} by ~{len(text) - keep} chars)"
+    return {**variables, key: new}, note
+
+
 REPAIR_INSTRUCTIONS = """Your previous response could not be accepted because it failed validation.
 
 Validation errors:
@@ -127,6 +164,25 @@ class StageRunner:
                 f"exceeding the {self.settings.context_length}-token context window.")
         return prompt_tokens
 
+    def _fit(self, template_name: str, package: PromptPackage, variables: dict[str, Any],
+             max_output: int) -> tuple[PromptPackage, dict[str, Any]]:
+        """Pre-flight: if the prompt is estimated not to fit, shrink the bulkiest shrinkable variable (trailing source
+        blocks, notes text, outline...) and re-check, instead of failing outright. Raises if nothing can be shrunk."""
+        for _ in range(8):
+            try:
+                self.check_budget(package, max_output)
+                return package, variables
+            except ContextOverflowError as exc:
+                prompt_tokens = estimate_tokens(package.system) + estimate_tokens(package.user) + 50
+                shrunk, note = shrink_variables(variables, prompt_tokens + max_output - self.settings.context_length + 100)
+                if shrunk is None:
+                    raise exc
+                log.warning("%s: prompt over budget before sending (%s); %s", package.template.label, exc, note)
+                variables = shrunk
+                package = self.build(template_name, variables)
+        self.check_budget(package, max_output)
+        return package, variables
+
     def run(self, template_name: str, variables: dict[str, Any], semantic_check: SemanticCheck | None = None,
             temperature: float | None = None, images: list[bytes] | None = None) -> StageResult:
         package = self.build(template_name, variables)
@@ -134,7 +190,7 @@ class StageRunner:
             raise ValueError(f"Template {template_name} has no schema; use run_text()")
         tpl = package.template
         max_output = self.max_output_for(package)
-        self.check_budget(package, max_output)
+        package, variables = self._fit(template_name, package, variables, max_output)
         attempts, repairs, total_duration = 0, [], 0.0
         prompt = package.user
         last_text, errors = "", []
@@ -154,7 +210,25 @@ class StageRunner:
                 prompt_tokens, output_tokens = result.prompt_tokens, result.output_tokens
                 total_duration += result.duration_s
                 last_text = result.text
+                calibrate(len(package.system) + len(prompt), prompt_tokens)  # learn the real chars/token ratio
                 obj, errors = parse_and_validate(result.text, package.schema_model, semantic_check)
+                context_full = bool(result.truncated and prompt_tokens and
+                                    prompt_tokens + (output_tokens or 0) >= self.settings.context_length - 64)
+                if obj is None and context_full:
+                    # Not a verbosity problem: the prompt left too little room for the answer. Shrink the source
+                    # material and retry the original task (without resending the cut-off output).
+                    errors = [f"Context window full: the prompt used {prompt_tokens} of {self.settings.context_length} "
+                              f"tokens, leaving only {output_tokens} for the answer."] + errors
+                    excess = prompt_tokens + max_output - self.settings.context_length + 300
+                    shrunk, note = shrink_variables(variables, excess)
+                    repairs.append(errors)
+                    log.warning("%s attempt %d: %s %s", tpl.label, attempts, errors[0], note)
+                    if shrunk is None:
+                        break
+                    variables = shrunk
+                    package = self.build(template_name, variables)
+                    prompt = package.user
+                    continue
                 if result.truncated and obj is None:
                     errors = ["The response was cut off because it exceeded the output length limit."] + errors
                 if obj is not None:
